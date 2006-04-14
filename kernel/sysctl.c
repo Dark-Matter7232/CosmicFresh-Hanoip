@@ -139,6 +139,9 @@ static int one_hundred = 100;
 extern int direct_vm_swappiness;
 static int two_hundred = 200;
 #endif /*CONFIG_OPLUS_MM_HACKS*/
+#ifdef CONFIG_INCREASE_MAXIMUM_SWAPPINESS
+static int max_swappiness = 200;
+#endif
 static int one_thousand = 1000;
 
 /*dylanchang, 2019/4/30, add foreground task io opt*/
@@ -1608,7 +1611,11 @@ static struct ctl_table vm_table[] = {
 		.mode		= 0644,
 		.proc_handler	= dirty_background_ratio_handler,
 		.extra1		= &zero,
+#ifdef CONFIG_INCREASE_MAXIMUM_SWAPPINESS
+		.extra2         = &max_swappiness,
+#else
 		.extra2		= &one_hundred,
+#endif
 	},
 	{
 		.procname	= "dirty_background_bytes",

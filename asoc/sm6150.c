@@ -8094,13 +8094,15 @@ static struct snd_soc_dai_link msm_rx_tx_cdc_dma_be_dai_links[] = {
 
 #ifdef CONFIG_SND_SOC_MADERA
 static struct snd_soc_dapm_route cs47l35_audio_paths[] = {
-	{"Slim1 Playback", NULL, "MCLK"},
-	{"Slim1 Capture", NULL, "MCLK"},
-	{"Slim2 Playback", NULL, "MCLK"},
-	{"Slim2 Capture", NULL, "MCLK"},
+	{"SLIMBUS_0_RX", NULL, "MCLK"},
+	{"SLIMBUS_5_RX", NULL, "MCLK"},
+	{"SLIMBUS_0_TX", NULL, "MCLK"},
+	{"SLIMBUS_5_TX", NULL, "MCLK"},
+#ifndef CONFIG_SND_SOC_CS35L41
 	{"AIF1 Playback", NULL, "SPK AMP Capture"},
 	{"SPK AMP Playback", NULL, "OPCLK"},
 	{"SPK AMP Capture", NULL, "OPCLK"},
+#endif
 };
 
 static const struct snd_soc_dapm_widget msm_madera_dapm_widgets[] = {

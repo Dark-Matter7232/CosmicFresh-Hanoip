@@ -46,6 +46,10 @@
 #include "msm-dolby-dap-config.h"
 #include "msm-ds2-dap-config.h"
 
+#ifdef CONFIG_CIRRUS_PLAYBACK
+#include <sound/msm-cirrus-playback.h>
+#endif
+
 #ifndef CONFIG_DOLBY_DAP
 #undef DOLBY_ADM_COPP_TOPOLOGY_ID
 #define DOLBY_ADM_COPP_TOPOLOGY_ID 0xFFFFFFFE
@@ -23979,6 +23983,9 @@ static int msm_routing_probe(struct snd_soc_platform *platform)
 			port_multi_channel_map_mixer_controls,
 			ARRAY_SIZE(port_multi_channel_map_mixer_controls));
 
+#ifdef CONFIG_CIRRUS_PLAYBACK
+	msm_crus_pb_add_controls(platform);
+#endif
 	return 0;
 }
 

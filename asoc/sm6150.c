@@ -49,6 +49,10 @@
 #include <linux/mfd/madera/core.h>
 #include <linux/mfd/madera/registers.h>
 
+#ifdef CONFIG_SEC_MI2S_MODS
+#include <linux/mods/modbus_ext.h>
+#endif
+
 #define DRV_NAME "sm6150-asoc-snd"
 
 #define FLL_RATE_MADERA 294912000
@@ -430,7 +434,11 @@ static struct dev_config mi2s_rx_cfg[] = {
 
 static struct dev_config mi2s_tx_cfg[] = {
 	[PRIM_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 1},
+#ifdef CONFIG_SEC_MI2S_MODS
+	[SEC_MI2S]  = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 2},
+#else
 	[SEC_MI2S]  = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 1},
+#endif
 	[TERT_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 1},
 	[QUAT_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 1},
 	[QUIN_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 1},
@@ -3494,6 +3502,93 @@ static int msm_hifi_put(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
+#ifdef CONFIG_SEC_MI2S_MODS
+static int mods_sample_rate_get(struct snd_kcontrol *kcontrol,
+				   struct snd_ctl_elem_value *ucontrol)
+{
+	int idx = SEC_MI2S;
+
+	ucontrol->value.enumerated.item[0] =
+		mi2s_get_sample_rate_val(mi2s_rx_cfg[idx].sample_rate);
+
+	pr_debug("%s: idx[%d] tx/rx sample_rate = %d, item = %d\n", __func__,
+		 idx, mi2s_rx_cfg[idx].sample_rate,
+		 ucontrol->value.enumerated.item[0]);
+
+	return 0;
+}
+
+static int mods_sample_rate_put(struct snd_kcontrol *kcontrol,
+				   struct snd_ctl_elem_value *ucontrol)
+{
+	int idx = SEC_MI2S;
+
+	mi2s_rx_cfg[idx].sample_rate = mi2s_tx_cfg[idx].sample_rate =
+			mi2s_get_sample_rate(ucontrol->value.enumerated.item[0]);
+
+	pr_debug("%s: idx[%d] tx/rx sample_rate = %d, item = %d\n", __func__,
+		 idx, mi2s_rx_cfg[idx].sample_rate,
+		 ucontrol->value.enumerated.item[0]);
+
+	return 0;
+}
+
+static int mods_channels_get(struct snd_kcontrol *kcontrol,
+			      struct snd_ctl_elem_value *ucontrol)
+{
+	int idx = SEC_MI2S;
+
+	pr_debug("%s: msm_mi2s_[%d] rx/tx channels = %d\n", __func__,
+		 idx, mi2s_rx_cfg[idx].channels);
+	ucontrol->value.enumerated.item[0] = mi2s_rx_cfg[idx].channels - 1;
+
+	return 0;
+}
+
+static int mods_channels_put(struct snd_kcontrol *kcontrol,
+			      struct snd_ctl_elem_value *ucontrol)
+{
+	int idx = SEC_MI2S;
+
+	mi2s_rx_cfg[idx].channels = mi2s_tx_cfg[idx].channels =
+		ucontrol->value.enumerated.item[0] + 1;
+	pr_debug("%s: msm_mi2s_[%d] tx/rx channels = %d\n", __func__,
+		 idx, mi2s_rx_cfg[idx].channels);
+
+	return 1;
+}
+
+static int mods_format_get(struct snd_kcontrol *kcontrol,
+				struct snd_ctl_elem_value *ucontrol)
+{
+	int idx = SEC_MI2S;
+
+	ucontrol->value.enumerated.item[0] =
+		mi2s_auxpcm_get_format_value(mi2s_rx_cfg[idx].bit_format);
+
+	pr_debug("%s: idx[%d] tx/rx formats = %d, item = %d\n", __func__,
+		idx, mi2s_rx_cfg[idx].bit_format,
+		ucontrol->value.enumerated.item[0]);
+
+	return 0;
+}
+
+static int mods_format_put(struct snd_kcontrol *kcontrol,
+				struct snd_ctl_elem_value *ucontrol)
+{
+	int idx = SEC_MI2S;
+
+	mi2s_rx_cfg[idx].bit_format = mi2s_tx_cfg[idx].bit_format =
+		mi2s_auxpcm_get_format(ucontrol->value.enumerated.item[0]);
+
+	pr_debug("%s: idx[%d] tx/rx formats = %d, item = %d\n", __func__,
+		  idx, mi2s_rx_cfg[idx].bit_format,
+		  ucontrol->value.enumerated.item[0]);
+
+	return 0;
+}
+#endif
+
 static const struct snd_kcontrol_new msm_int_snd_controls[] = {
 	SOC_ENUM_EXT("WSA_CDC_DMA_RX_0 Channels", wsa_cdc_dma_rx_0_chs,
 			cdc_dma_rx_ch_get, cdc_dma_rx_ch_put),
@@ -3782,6 +3877,11 @@ static const struct snd_kcontrol_new msm_common_snd_controls[] = {
 	SOC_ENUM_EXT("SEC_MI2S_RX SampleRate", sec_mi2s_rx_sample_rate,
 			mi2s_rx_sample_rate_get,
 			mi2s_rx_sample_rate_put),
+#ifdef CONFIG_SEC_MI2S_MODS
+	SOC_ENUM_EXT("MODS_MI2S SampleRate", sec_mi2s_rx_sample_rate,
+			mods_sample_rate_get,
+			mods_sample_rate_put),
+#endif
 	SOC_ENUM_EXT("TERT_MI2S_RX SampleRate", tert_mi2s_rx_sample_rate,
 			mi2s_rx_sample_rate_get,
 			mi2s_rx_sample_rate_put),
@@ -3814,6 +3914,10 @@ static const struct snd_kcontrol_new msm_common_snd_controls[] = {
 			msm_mi2s_rx_ch_get, msm_mi2s_rx_ch_put),
 	SOC_ENUM_EXT("SEC_MI2S_TX Channels", sec_mi2s_tx_chs,
 			msm_mi2s_tx_ch_get, msm_mi2s_tx_ch_put),
+#ifdef CONFIG_SEC_MI2S_MODS
+	SOC_ENUM_EXT("MODS_MI2S Channels", sec_mi2s_rx_chs,
+			mods_channels_get, mods_channels_put),
+#endif
 	SOC_ENUM_EXT("TERT_MI2S_RX Channels", tert_mi2s_rx_chs,
 			msm_mi2s_rx_ch_get, msm_mi2s_rx_ch_put),
 	SOC_ENUM_EXT("TERT_MI2S_TX Channels", tert_mi2s_tx_chs,
@@ -3832,6 +3936,10 @@ static const struct snd_kcontrol_new msm_common_snd_controls[] = {
 			msm_mi2s_tx_format_get, msm_mi2s_tx_format_put),
 	SOC_ENUM_EXT("SEC_MI2S_RX Format", mi2s_rx_format,
 			msm_mi2s_rx_format_get, msm_mi2s_rx_format_put),
+#ifdef CONFIG_SEC_MI2S_MODS
+	SOC_ENUM_EXT("MODS_MI2S Format", mi2s_rx_format,
+			mods_format_get, mods_format_put),
+#endif
 	SOC_ENUM_EXT("SEC_MI2S_TX Format", mi2s_tx_format,
 			msm_mi2s_tx_format_get, msm_mi2s_tx_format_put),
 	SOC_ENUM_EXT("TERT_MI2S_RX Format", mi2s_rx_format,
@@ -5661,11 +5769,27 @@ static void update_mi2s_clk_val(int dai_id, int stream)
 	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
 		bit_per_sample =
 		    get_mi2s_bits_per_sample(mi2s_rx_cfg[dai_id].bit_format);
+#ifdef CONFIG_SEC_MI2S_MODS
+		if (dai_id == SEC_MI2S && bit_per_sample == 16 &&
+			mi2s_rx_cfg[dai_id].channels == 4) {
+			pr_debug("%s: choosing 32-bit MI2S playback "
+				"clk_ctl for 16x4\n", __func__);
+			bit_per_sample = 32;
+		}
+#endif
 		mi2s_clk[dai_id].clk_freq_in_hz =
 		    mi2s_rx_cfg[dai_id].sample_rate * 2 * bit_per_sample;
 	} else {
 		bit_per_sample =
 		    get_mi2s_bits_per_sample(mi2s_tx_cfg[dai_id].bit_format);
+#ifdef CONFIG_SEC_MI2S_MODS
+		if (dai_id == SEC_MI2S && bit_per_sample == 16 &&
+			mi2s_tx_cfg[dai_id].channels == 4) {
+			pr_debug("%s: choosing 32-bit MI2S playback "
+				"clk_ctl for 16x4\n", __func__);
+			bit_per_sample = 32;
+		}
+#endif
 		mi2s_clk[dai_id].clk_freq_in_hz =
 		    mi2s_tx_cfg[dai_id].sample_rate * 2 * bit_per_sample;
 	}
@@ -5927,6 +6051,17 @@ static struct snd_soc_ops msm_fe_qos_ops = {
 	.prepare = msm_fe_qos_prepare,
 };
 
+#ifdef CONFIG_SEC_MI2S_MODS
+static void msm_mi2s_path_enable(bool enable)
+{
+	struct modbus_ext_status modbus_status;
+	pr_err("%s: enable:%d\n", __func__, enable);
+	modbus_status.proto = MODBUS_PROTO_I2S;
+	modbus_status.active = enable;
+	modbus_ext_set_state(&modbus_status);
+}
+#endif
+
 static int msm_mi2s_snd_startup(struct snd_pcm_substream *substream)
 {
 	int ret = 0;
@@ -5962,6 +6097,10 @@ static int msm_mi2s_snd_startup(struct snd_pcm_substream *substream)
 	 * that the same clock won't be enable twice.
 	 */
 	mutex_lock(&mi2s_intf_conf[index].lock);
+#ifdef CONFIG_SEC_MI2S_MODS
+	msm_mi2s_path_enable(true);
+#endif
+
 	if (++mi2s_intf_conf[index].ref_cnt == 1) {
 		/* Check if msm needs to provide the clock to the interface */
 		if (!mi2s_intf_conf[index].msm_is_mi2s_master) {
@@ -6041,6 +6180,9 @@ static void msm_mi2s_snd_shutdown(struct snd_pcm_substream *substream)
 		if (ret < 0)
 			pr_err("%s:clock disable failed for MI2S (%d); ret=%d\n",
 				__func__, index, ret);
+#ifdef CONFIG_SEC_MI2S_MODS
+		msm_mi2s_path_enable(false);
+#endif
 
 		if (mi2s_intf_conf[index].msm_is_ext_mclk) {
 			pr_debug("%s: Disabling mclk, clk_freq_in_hz = %u\n",
@@ -7646,7 +7788,7 @@ static struct snd_soc_dai_link ext_disp_be_dai_link[] = {
 };
 
 static struct snd_soc_dai_link msm_mi2s_be_dai_links[] = {
-	{
+	/*{
 		.name = LPASS_BE_PRI_MI2S_RX,
 		.stream_name = "Primary MI2S Playback",
 		.cpu_dai_name = "msm-dai-q6-mi2s.0",
@@ -7674,14 +7816,19 @@ static struct snd_soc_dai_link msm_mi2s_be_dai_links[] = {
 		.be_hw_params_fixup = msm_be_hw_params_fixup,
 		.ops = &msm_mi2s_be_ops,
 		.ignore_suspend = 1,
-	},
+	},*/
 	{
 		.name = LPASS_BE_SEC_MI2S_RX,
 		.stream_name = "Secondary MI2S Playback",
 		.cpu_dai_name = "msm-dai-q6-mi2s.1",
 		.platform_name = "msm-pcm-routing",
+#ifdef CONFIG_SEC_MI2S_MODS
+		.codec_name = "mods_codec_shim",
+		.codec_dai_name = "mods_codec_shim_dai",
+#else
 		.codec_name = "msm-stub-codec.1",
 		.codec_dai_name = "msm-stub-rx",
+#endif
 		.no_pcm = 1,
 		.dpcm_playback = 1,
 		.id = MSM_BACKEND_DAI_SECONDARY_MI2S_RX,
@@ -7695,8 +7842,13 @@ static struct snd_soc_dai_link msm_mi2s_be_dai_links[] = {
 		.stream_name = "Secondary MI2S Capture",
 		.cpu_dai_name = "msm-dai-q6-mi2s.1",
 		.platform_name = "msm-pcm-routing",
+#ifdef CONFIG_SEC_MI2S_MODS
+		.codec_name = "mods_codec_shim",
+		.codec_dai_name = "mods_codec_shim_dai",
+#else
 		.codec_name = "msm-stub-codec.1",
 		.codec_dai_name = "msm-stub-tx",
+#endif
 		.no_pcm = 1,
 		.dpcm_capture = 1,
 		.id = MSM_BACKEND_DAI_SECONDARY_MI2S_TX,
@@ -7704,7 +7856,7 @@ static struct snd_soc_dai_link msm_mi2s_be_dai_links[] = {
 		.ops = &msm_mi2s_be_ops,
 		.ignore_suspend = 1,
 	},
-	{
+	/*{
 		.name = LPASS_BE_TERT_MI2S_RX,
 		.stream_name = "Tertiary MI2S Playback",
 		.cpu_dai_name = "msm-dai-q6-mi2s.2",
@@ -7790,8 +7942,7 @@ static struct snd_soc_dai_link msm_mi2s_be_dai_links[] = {
 		.be_hw_params_fixup = msm_be_hw_params_fixup,
 		.ops = &msm_mi2s_be_ops,
 		.ignore_suspend = 1,
-	},
-
+	},*/
 };
 
 static struct snd_soc_dai_link msm_auxpcm_be_dai_links[] = {

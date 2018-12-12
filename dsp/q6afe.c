@@ -606,7 +606,7 @@ static int32_t afe_callback(struct apr_client_data *data, void *priv)
 		if (param_id == AFE_PARAM_ID_DEV_TIMING_STATS) {
 			av_dev_drift_afe_cb_handler(data->opcode, data->payload,
 						    data->payload_size);
-#if defined (CONFIG_CIRRUS_PLAYBACK)
+#ifdef CONFIG_CIRRUS_PLAYBACK
 		} else if (payload[1] == CIRRUS_SE) {
 			crus_afe_callback(data->payload, data->payload_size);
 			atomic_set(&this_afe.state, 0);
@@ -7383,7 +7383,7 @@ int afe_enable_lpass_core_shared_clock(u16 port_id, u32 enable)
 }
 
 #ifdef CONFIG_CIRRUS_PLAYBACK
-int afe_set_crus_params(u16 port_id, struct param_hdr_v3 param_hdr,
+extern int afe_set_crus_params(u16 port_id, struct param_hdr_v3 param_hdr,
 				u8 *param_data)
 {
 	int ret = 0;
@@ -7700,7 +7700,7 @@ fail_cmd:
 }
 
 #ifdef CONFIG_CIRRUS_PLAYBACK
-int afe_get_crus_params(u16 port_id, struct mem_mapping_hdr *mem_hdr,
+extern int afe_get_crus_params(u16 port_id, struct mem_mapping_hdr *mem_hdr,
 				struct param_hdr_v3 *param_hdr)
 {
 	int ret = 0;

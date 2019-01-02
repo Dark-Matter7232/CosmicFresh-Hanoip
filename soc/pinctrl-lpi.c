@@ -328,18 +328,16 @@ static int lpi_config_set(struct pinctrl_dev *pctldev, unsigned int pin,
 	val |= lpi_drive_to_regval(pad->strength) <<
 		LPI_GPIO_REG_OUT_STRENGTH_SHIFT;
 
-	/* MMI_STOPSHIP <pinctrl-lpi>: LPI_GPIO_REG_VAL_CTL(0x00) is for direction,
+	/* LPI_GPIO_REG_VAL_CTL(0x00) is for direction,
 	 * output_enabled need to set to direction register
-	 * will revert this change after qualcomm offical patch.
 	 */
 	if (pad->output_enabled)
 		val |= pad->output_enabled << LPI_GPIO_REG_OE_SHIFT;
 
 	lpi_gpio_write(pad, LPI_GPIO_REG_VAL_CTL, val);
 
-	/* MMI_STOPSHIP <pinctrl-lpi>: LPI_GPIO_REG_DIR_CTL(0x04) is for val,
+	/* LPI_GPIO_REG_DIR_CTL(0x04) is for val,
 	 *  pad->value need to set to value register
-	 * will revert this change after qualcomm offical patch.
 	 */
 	lpi_gpio_write(pad, LPI_GPIO_REG_DIR_CTL,
 		       pad->value << LPI_GPIO_REG_DIR_SHIFT);
@@ -382,8 +380,7 @@ static int lpi_gpio_get(struct gpio_chip *chip, unsigned int pin)
 
 	pad = state->ctrl->desc->pins[pin].drv_data;
 
-	/* MMI_STOPSHIP <pinctrl-lpi>: actually LPI_GPIO_REG_DIR_CTL(0x04) is for val
-	 * will revert this change after qualcomm offical patch.
+	/* actually LPI_GPIO_REG_DIR_CTL(0x04) is for val
 	 */
 	value = lpi_gpio_read(pad, LPI_GPIO_REG_DIR_CTL);
 	value = value & 0x1;

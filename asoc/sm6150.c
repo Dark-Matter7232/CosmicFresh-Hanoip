@@ -6055,7 +6055,7 @@ static struct snd_soc_ops msm_fe_qos_ops = {
 static void msm_mi2s_path_enable(bool enable)
 {
 	struct modbus_ext_status modbus_status;
-	pr_err("%s: enable:%d\n", __func__, enable);
+	pr_info("%s: enable:%d\n", __func__, enable);
 	modbus_status.proto = MODBUS_PROTO_I2S;
 	modbus_status.active = enable;
 	modbus_ext_set_state(&modbus_status);
@@ -6099,6 +6099,7 @@ static int msm_mi2s_snd_startup(struct snd_pcm_substream *substream)
 	mutex_lock(&mi2s_intf_conf[index].lock);
 #ifdef CONFIG_SEC_MI2S_MODS
 	msm_mi2s_path_enable(true);
+	msleep(10);
 #endif
 
 	if (++mi2s_intf_conf[index].ref_cnt == 1) {

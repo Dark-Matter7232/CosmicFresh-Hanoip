@@ -5091,7 +5091,7 @@ static int msm_dai_q6_mi2s_hw_params(struct snd_pcm_substream *substream,
 		dai_data->channels = params_channels(params);
 	}
 #endif
-	dai_data->channels = params_channels(params);
+
 	switch (dai_data->channels) {
 	case 15:
 	case 16:

@@ -1,0 +1,49 @@
+From 0b380a898f07581adb5c44a6f84b96d6d3c87a58 Mon Sep 17 00:00:00 2001
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 15 Dec 2017 05:09:47 -0800
+Subject: [PATCH] BACKPORT: cgroup: use strlcpy() instead of strscpy() to avoid
+ spurious warning
+
+As long as cft->name is guaranteed to be NUL-terminated, using strlcpy() would
+work just as well and avoid that warning, so the change below could be folded
+into that commit.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Change-Id: I8215beea12d94fda6a7834f8be6f8e0891285d0e
+(cherry picked from commit 50034ed49645463a16327cad05694e201e6b4126)
+Bug: 154548692
+Signed-off-by: Marco Ballesio <balejs@google.com>
+(cherry picked from commit f6a58f922163cba0a99c1588b094f127982e87af)
+Signed-off-by: Panchajanya1999 <panchajanya@azure-dev.live>
+Signed-off-by: Adithya R <gh0strider.2k18.reborn@gmail.com>
+Signed-off-by: Cyber Knight <cyberknight755@gmail.com>
+---
+ kernel/cgroup/cgroup.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/kernel/cgroup/cgroup.c b/kernel/cgroup/cgroup.c
+index 2fd6bcbbde57..41a5faab596f 100644
+--- a/kernel/cgroup/cgroup.c
++++ b/kernel/cgroup/cgroup.c
+@@ -1395,7 +1395,7 @@ static char *cgroup_file_name(struct cgroup *cgrp, const struct cftype *cft,
+ 			 cgroup_on_dfl(cgrp) ? ss->name : ss->legacy_name,
+ 			 cft->name);
+ 	else
+-		strscpy(buf, cft->name, CGROUP_FILE_NAME_MAX);
++		strlcpy(buf, cft->name, CGROUP_FILE_NAME_MAX);
+ 	return buf;
+ }
+ 
+@@ -1862,9 +1862,9 @@ void init_cgroup_root(struct cgroup_root *root, struct cgroup_sb_opts *opts)
+ 
+ 	root->flags = opts->flags;
+ 	if (opts->release_agent)
+-		strscpy(root->release_agent_path, opts->release_agent, PATH_MAX);
++		strlcpy(root->release_agent_path, opts->release_agent, PATH_MAX);
+ 	if (opts->name)
+-		strscpy(root->name, opts->name, MAX_CGROUP_ROOT_NAMELEN);
++		strlcpy(root->name, opts->name, MAX_CGROUP_ROOT_NAMELEN);
+ 	if (opts->cpuset_clone_children)
+ 		set_bit(CGRP_CPUSET_CLONE_CHILDREN, &root->cgrp.flags);
+ }

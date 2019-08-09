@@ -233,4 +233,6 @@ source "drivers/moto_f_usbnet/Kconfig"
 
 source "drivers/popup/Kconfig"
 
+source "techpack/data/drivers/Kconfig"
+
 endmenu

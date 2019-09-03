@@ -7395,7 +7395,8 @@ static inline bool task_fits_max(struct task_struct *p, int cpu)
 #elif  CONFIG_UCLAMP_TASK
 			uclamp_boosted(p) > 0) &&
 #endif
-			is_min_capacity_cpu(cpu))
+			is_min_capacity_cpu(cpu) ||
+			walt_should_kick_upmigrate(p, cpu))
 		return false;
 
 	return task_fits_capacity(p, capacity, cpu);

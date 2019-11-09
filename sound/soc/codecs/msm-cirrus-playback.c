@@ -48,7 +48,7 @@ static int crus_se_usecase_dt_count;
 static const char *crus_se_usecase_dt_text[MAX_TUNING_CONFIGS];
 static u32 crus_se_usecase_dt_index[MAX_TUNING_CONFIGS] = {0, 1, 2, 3};
 
-int crus_afe_callback(void *payload, int size);
+int crus_afe_callback_local(void *payload, int size);
 
 static int crus_get_param(int port, int module, int param, int length,
 			      void *data)
@@ -77,7 +77,7 @@ static int crus_get_param(int port, int module, int param, int length,
 		return -ENOMEM;
 	}
 
-	crus_afe_set_callback(crus_afe_callback);
+	crus_afe_set_callback(crus_afe_callback_local);
 
 	ret = afe_get_crus_params(port, NULL, &param_hdr);
 
@@ -279,7 +279,7 @@ static int crus_send_delta(const char *data, uint32_t length)
 	return ret;
 }
 
-int crus_afe_callback(void *payload, int size)
+int crus_afe_callback_local(void *payload, int size)
 {
 	uint32_t *payload32 = payload;
 

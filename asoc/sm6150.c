@@ -5830,7 +5830,7 @@ err:
 	return ret;
 }
 
-#ifndef CONFIG_SND_SOC_MADERA
+#if !defined(CONFIG_SND_SOC_MADERA) && !defined(CONFIG_SND_SOC_BOLERO_AW882XX)
 static int sm6150_tdm_snd_hw_params(struct snd_pcm_substream *substream,
 				     struct snd_pcm_hw_params *params)
 {
@@ -7223,7 +7223,7 @@ static struct snd_soc_dai_link msm_common_be_dai_links[] = {
 		.be_hw_params_fixup = msm_be_hw_params_fixup,
 		.ignore_suspend = 1,
 	},
-#ifndef CONFIG_SND_SOC_MADERA
+#if !defined(CONFIG_SND_SOC_MADERA) && !defined(CONFIG_SND_SOC_BOLERO_AW882XX)
 	{
 		.name = LPASS_BE_PRI_TDM_RX_0,
 		.stream_name = "Primary TDM0 Playback",
@@ -8698,6 +8698,57 @@ static struct snd_soc_dai_link msm_madera_fe_dai_links[] = {
 };
 #endif
 
+#ifdef CONFIG_SND_SOC_BOLERO_AW882XX
+static struct snd_soc_dai_link msm_tert_mi2s_aw882xx_fe_dai_links[] = {
+        {
+                .name = "TERT_MI2S_TX Hostless",
+                .stream_name = "Tert MI2S_TX Hostless",
+                .cpu_dai_name = "TERT_MI2S_TX_HOSTLESS",
+                .platform_name = "msm-pcm-hostless",
+                .dynamic = 1,
+                .dpcm_capture = 1,
+                .trigger = {SND_SOC_DPCM_TRIGGER_POST,
+                            SND_SOC_DPCM_TRIGGER_POST},
+                .no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+                .ignore_suspend = 1,
+                .ignore_pmdown_time = 1,
+                .codec_name = "snd-soc-dummy",
+                .codec_dai_name = "snd-soc-dummy-dai",
+        },
+};
+
+static struct snd_soc_dai_link msm_tert_mi2s_aw882xx_be_dai_links[] = {
+{
+                .name = LPASS_BE_TERT_MI2S_RX,
+                .stream_name = "Tertiary MI2S Playback",
+                .cpu_dai_name = "msm-dai-q6-mi2s.2",
+                .platform_name = "msm-pcm-routing",
+                .codec_name = "aw882xx_smartpa.2-0034",
+                .codec_dai_name = "aw882xx-aif",
+                .no_pcm = 1,
+                .dpcm_playback = 1,
+                .id = MSM_BACKEND_DAI_TERTIARY_MI2S_RX,
+                .be_hw_params_fixup = msm_be_hw_params_fixup,
+                .ops = &msm_mi2s_be_ops,
+                .ignore_suspend = 1,
+                .ignore_pmdown_time = 1,
+        },
+	{
+                .name = LPASS_BE_TERT_MI2S_TX,
+                .stream_name = "Tertiary MI2S Capture",
+                .cpu_dai_name = "msm-dai-q6-mi2s.2",
+                .platform_name = "msm-pcm-routing",
+                .codec_name = "aw882xx_smartpa.2-0034",
+                .codec_dai_name = "aw882xx-aif",
+                .no_pcm = 1,
+                .dpcm_capture = 1,
+                .id = MSM_BACKEND_DAI_TERTIARY_MI2S_TX,
+                .be_hw_params_fixup = msm_be_hw_params_fixup,
+                .ops = &msm_mi2s_be_ops,
+                .ignore_suspend = 1,
+        },
+};
+#endif
 static struct snd_soc_dai_link msm_sm6150_dai_links[
 			 ARRAY_SIZE(msm_common_dai_links) +
 			 ARRAY_SIZE(msm_tavil_fe_dai_links) +
@@ -8705,6 +8756,9 @@ static struct snd_soc_dai_link msm_sm6150_dai_links[
 			 ARRAY_SIZE(msm_tasha_fe_dai_links) +
 			 ARRAY_SIZE(msm_common_misc_fe_dai_links) +
 			 ARRAY_SIZE(msm_int_compress_capture_dai) +
+#ifdef CONFIG_SND_SOC_BOLERO_AW882XX
+			 ARRAY_SIZE(msm_tert_mi2s_aw882xx_fe_dai_links) +
+#endif
 			 ARRAY_SIZE(msm_common_be_dai_links) +
 			 ARRAY_SIZE(msm_tavil_be_dai_links) +
 			 ARRAY_SIZE(msm_tasha_be_dai_links) +
@@ -8712,15 +8766,22 @@ static struct snd_soc_dai_link msm_sm6150_dai_links[
 			 ARRAY_SIZE(ext_disp_be_dai_link) +
 			 ARRAY_SIZE(msm_mi2s_be_dai_links) +
 			 ARRAY_SIZE(msm_auxpcm_be_dai_links) +
+#ifdef CONFIG_SND_SOC_BOLERO_AW882XX
+                         ARRAY_SIZE(msm_tert_mi2s_aw882xx_be_dai_links) +
+#endif
 			 ARRAY_SIZE(msm_wsa_cdc_dma_be_dai_links) +
 			 ARRAY_SIZE(msm_rx_tx_cdc_dma_be_dai_links)];
 
 static struct snd_soc_dai_link msm_madera_dai_links[
 			 ARRAY_SIZE(msm_common_dai_links) +
+#ifdef CONFIG_SND_SOC_MADERA
 			 ARRAY_SIZE(msm_madera_fe_dai_links) +
+#endif
 			 ARRAY_SIZE(msm_common_misc_fe_dai_links) +
 			 ARRAY_SIZE(msm_common_be_dai_links) +
+#ifdef CONFIG_SND_SOC_MADERA
 			 ARRAY_SIZE(msm_madera_be_dai_links) +
+#endif
 			 ARRAY_SIZE(msm_wcn_be_dai_links) +
 			 ARRAY_SIZE(ext_disp_be_dai_link) +
 			 ARRAY_SIZE(msm_mi2s_be_dai_links) +
@@ -9039,6 +9100,10 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 	const struct of_device_id *match;
 	u32 tasha_codec = 0;
 
+#ifdef CONFIG_SND_SOC_BOLERO_AW882XX
+	u32 aw882xx_pa = 0;
+#endif
+
 	match = of_match_node(sm6150_asoc_machine_of_match, dev->of_node);
 	if (!match) {
 		dev_err(dev, "%s: No DT match found for sound card\n",
@@ -9053,10 +9118,11 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 			msm_common_dai_links, sizeof(msm_common_dai_links));
 		total_links += ARRAY_SIZE(msm_common_dai_links);
 
+#ifdef CONFIG_SND_SOC_MADERA
 		memcpy(msm_madera_dai_links + total_links,
 			msm_madera_fe_dai_links, sizeof(msm_madera_fe_dai_links));
 		total_links += ARRAY_SIZE(msm_madera_fe_dai_links);
-
+#endif
 		memcpy(msm_madera_dai_links + total_links,
 			msm_common_misc_fe_dai_links, sizeof(msm_common_misc_fe_dai_links));
 		total_links += ARRAY_SIZE(msm_common_misc_fe_dai_links);
@@ -9065,9 +9131,11 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 			msm_common_be_dai_links, sizeof(msm_common_be_dai_links));
 		total_links += ARRAY_SIZE(msm_common_be_dai_links);
 
+#ifdef CONFIG_SND_SOC_MADERA
 		memcpy(msm_madera_dai_links + total_links,
 			msm_madera_be_dai_links, sizeof(msm_madera_be_dai_links));
 		total_links += ARRAY_SIZE(msm_madera_be_dai_links);
+#endif
 
 		if (of_property_read_bool(dev->of_node, "qcom,ext-disp-audio-rx")) {
 			memcpy(msm_madera_dai_links + total_links,
@@ -9158,6 +9226,22 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 
 		total_links += ARRAY_SIZE(msm_int_compress_capture_dai);
 
+#ifdef CONFIG_SND_SOC_BOLERO_AW882XX
+		rc = of_property_read_u32(dev->of_node, "aw,have-882xx",
+                                                &aw882xx_pa);
+                if (rc)
+                        dev_err(dev, "%s: No DT match for aw882xx pa\n",
+                                __func__);
+
+		if (aw882xx_pa) {
+                        memcpy(msm_sm6150_dai_links + total_links,
+                                msm_tert_mi2s_aw882xx_fe_dai_links,
+                                sizeof(msm_tert_mi2s_aw882xx_fe_dai_links));
+                        total_links +=
+                                ARRAY_SIZE(msm_tert_mi2s_aw882xx_fe_dai_links);
+                }
+#endif
+
 		memcpy(msm_sm6150_dai_links + total_links,
 		       msm_common_be_dai_links,
 		       sizeof(msm_common_be_dai_links));
@@ -9203,6 +9287,16 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 					ARRAY_SIZE(ext_disp_be_dai_link);
 			}
 		}
+
+#ifdef CONFIG_SND_SOC_BOLERO_AW882XX
+		if (aw882xx_pa) {
+                        memcpy(msm_sm6150_dai_links + total_links,
+                                        msm_tert_mi2s_aw882xx_be_dai_links,
+                                        sizeof(msm_tert_mi2s_aw882xx_be_dai_links));
+                        total_links += ARRAY_SIZE(msm_tert_mi2s_aw882xx_be_dai_links);
+                }
+#endif
+
 
 		rc = of_property_read_u32(dev->of_node, "qcom,mi2s-audio-intf",
 					  &mi2s_audio_intf);

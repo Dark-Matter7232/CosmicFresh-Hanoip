@@ -5092,6 +5092,10 @@ static int msm_dai_q6_mi2s_hw_params(struct snd_pcm_substream *substream,
 	}
 #endif
 
+#ifdef CONFIG_SND_SOC_BOLERO_AW882XX
+	dai_data->channels = params_channels(params);
+#endif
+
 	switch (dai_data->channels) {
 	case 15:
 	case 16:

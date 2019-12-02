@@ -38,7 +38,7 @@
 #include <linux/of_gpio.h>
 #include <linux/timer.h>
 #include <linux/notifier.h>
-#include <linux/fb.h>
+#include <linux/msm_drm_notify.h>
 #include <linux/pm_qos.h>
 #include <linux/cpufreq.h>
 #include "gf_spi.h"
@@ -585,19 +585,19 @@ static int goodix_fb_state_chg_callback(struct notifier_block *nb,
 		unsigned long val, void *data)
 {
 	struct gf_dev *gf_dev;
-	struct fb_event *evdata = data;
+	struct msm_drm_notifier *evdata = data;
 	int blank;
 	char msg = 0;
 
-	if (val != FB_EARLY_EVENT_BLANK)
+	if (val != MSM_DRM_EARLY_EVENT_BLANK)
 		return 0;
 	pr_info("[info] %s go to the goodix_fb_state_chg_callback value = %d\n",
 			__func__, (int)val);
 	gf_dev = container_of(nb, struct gf_dev, notifier);
-	if (evdata && evdata->data && val == FB_EARLY_EVENT_BLANK && gf_dev) {
+	if (evdata && evdata->data && val == MSM_DRM_EARLY_EVENT_BLANK && gf_dev) {
 		blank = *(int *)(evdata->data);
 		switch (blank) {
-		case FB_BLANK_POWERDOWN:
+		case MSM_DRM_BLANK_POWERDOWN:
 			gf_dev->fb_black = 1;
 #if defined(GF_NETLINK_ENABLE)
 			msg = GF_NET_EVENT_FB_BLACK;
@@ -608,7 +608,7 @@ static int goodix_fb_state_chg_callback(struct notifier_block *nb,
 #endif
 			break;
 
-		case FB_BLANK_UNBLANK:
+		case MSM_DRM_BLANK_UNBLANK:
 			gf_dev->fb_black = 0;
 #if defined(GF_NETLINK_ENABLE)
 			msg = GF_NET_EVENT_FB_UNBLACK;
@@ -720,7 +720,7 @@ static int gf_probe(struct platform_device *pdev)
 #endif
 
 	gf_dev->notifier = goodix_noti_block;
-	fb_register_client(&gf_dev->notifier);
+	msm_drm_register_client(&gf_dev->notifier);
 
 	gf_dev->irq = gf_irq_num(gf_dev);
 
@@ -796,7 +796,7 @@ static int gf_remove(struct platform_device *pdev)
 	if (gf_dev->users == 0)
 		gf_cleanup(gf_dev);
 
-	fb_unregister_client(&gf_dev->notifier);
+	msm_drm_unregister_client(&gf_dev->notifier);
 	mutex_unlock(&device_list_lock);
 
 	return 0;

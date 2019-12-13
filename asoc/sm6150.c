@@ -439,7 +439,11 @@ static struct dev_config mi2s_tx_cfg[] = {
 #else
 	[SEC_MI2S]  = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 1},
 #endif
+#ifdef CONFIG_SND_SOC_BOLERO_AW882XX
+	[TERT_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 2},
+#else
 	[TERT_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 1},
+#endif
 	[QUAT_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 1},
 	[QUIN_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 1},
 };
@@ -8148,6 +8152,7 @@ static struct snd_soc_dai_link msm_rx_tx_cdc_dma_be_dai_links[] = {
 		.codec_dai_name = "rx_macro_rx1",
 		.no_pcm = 1,
 		.dpcm_playback = 1,
+		.init = &msm_int_audrx_init,
 		.id = MSM_BACKEND_DAI_RX_CDC_DMA_RX_0,
 		.be_hw_params_fixup = msm_be_hw_params_fixup,
 		.ignore_pmdown_time = 1,
@@ -9196,6 +9201,14 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 			dev_dbg(dev, "%s: No DT match for tasha codec\n",
 				__func__);
 
+#ifdef CONFIG_SND_SOC_BOLERO_AW882XX
+                rc = of_property_read_u32(dev->of_node, "aw,have-882xx",
+                                                &aw882xx_pa);
+                if (rc)
+                        dev_dbg(dev, "%s: No DT match for aw882xx pa\n",
+                                __func__);
+#endif
+
 		if (tavil_codec) {
 			card->late_probe =
 				msm_snd_card_tavil_late_probe;
@@ -9212,6 +9225,14 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 				sizeof(msm_tasha_fe_dai_links));
 			total_links +=
 				ARRAY_SIZE(msm_tasha_fe_dai_links);
+#ifdef CONFIG_SND_SOC_BOLERO_AW882XX
+		} else if (aw882xx_pa) {
+                        memcpy(msm_sm6150_dai_links + total_links,
+                                msm_tert_mi2s_aw882xx_fe_dai_links,
+                                sizeof(msm_tert_mi2s_aw882xx_fe_dai_links));
+                        total_links +=
+                                ARRAY_SIZE(msm_tert_mi2s_aw882xx_fe_dai_links);
+#endif
 		} else {
 			memcpy(msm_sm6150_dai_links + total_links,
 				msm_bolero_fe_dai_links,
@@ -9225,22 +9246,6 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 		       sizeof(msm_int_compress_capture_dai));
 
 		total_links += ARRAY_SIZE(msm_int_compress_capture_dai);
-
-#ifdef CONFIG_SND_SOC_BOLERO_AW882XX
-		rc = of_property_read_u32(dev->of_node, "aw,have-882xx",
-                                                &aw882xx_pa);
-                if (rc)
-                        dev_err(dev, "%s: No DT match for aw882xx pa\n",
-                                __func__);
-
-		if (aw882xx_pa) {
-                        memcpy(msm_sm6150_dai_links + total_links,
-                                msm_tert_mi2s_aw882xx_fe_dai_links,
-                                sizeof(msm_tert_mi2s_aw882xx_fe_dai_links));
-                        total_links +=
-                                ARRAY_SIZE(msm_tert_mi2s_aw882xx_fe_dai_links);
-                }
-#endif
 
 		memcpy(msm_sm6150_dai_links + total_links,
 		       msm_common_be_dai_links,
@@ -9258,6 +9263,19 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 					msm_tasha_be_dai_links,
 					sizeof(msm_tasha_be_dai_links));
 			total_links += ARRAY_SIZE(msm_tasha_be_dai_links);
+#ifdef CONFIG_SND_SOC_BOLERO_AW882XX
+		} else if (aw882xx_pa) {
+			memcpy(msm_sm6150_dai_links + total_links,
+                                        msm_tert_mi2s_aw882xx_be_dai_links,
+                                        sizeof(msm_tert_mi2s_aw882xx_be_dai_links));
+                        total_links += ARRAY_SIZE(msm_tert_mi2s_aw882xx_be_dai_links);
+
+			memcpy(msm_sm6150_dai_links + total_links,
+                               msm_rx_tx_cdc_dma_be_dai_links,
+                               sizeof(msm_rx_tx_cdc_dma_be_dai_links));
+                        total_links +=
+                                ARRAY_SIZE(msm_rx_tx_cdc_dma_be_dai_links);
+#endif
 		} else {
 			memcpy(msm_sm6150_dai_links + total_links,
 			       msm_wsa_cdc_dma_be_dai_links,
@@ -9287,16 +9305,6 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 					ARRAY_SIZE(ext_disp_be_dai_link);
 			}
 		}
-
-#ifdef CONFIG_SND_SOC_BOLERO_AW882XX
-		if (aw882xx_pa) {
-                        memcpy(msm_sm6150_dai_links + total_links,
-                                        msm_tert_mi2s_aw882xx_be_dai_links,
-                                        sizeof(msm_tert_mi2s_aw882xx_be_dai_links));
-                        total_links += ARRAY_SIZE(msm_tert_mi2s_aw882xx_be_dai_links);
-                }
-#endif
-
 
 		rc = of_property_read_u32(dev->of_node, "qcom,mi2s-audio-intf",
 					  &mi2s_audio_intf);

@@ -62,6 +62,9 @@ ifeq ($(KERNEL_BUILD), 0)
 	ifneq (,$(filter liber%, $(TARGET_PRODUCT)))
 		INCS    +=  -include $(AUDIO_ROOT)/config/liberautoconf.h
 	endif
+	ifneq (,$(filter odessa%, $(TARGET_PRODUCT)))
+		INCS    +=  -include $(AUDIO_ROOT)/config/odessaautoconf.h
+	endif
 endif
 
 # As per target team, build is done as follows:

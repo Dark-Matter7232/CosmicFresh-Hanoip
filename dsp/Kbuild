@@ -169,6 +169,10 @@ ifneq (,$(filter liber%, $(TARGET_PRODUCT)))
 CDEFINES += -DCONFIG_SND_SOC_AWINIC_AW882XX
 endif
 
+ifneq (,$(filter odessa%, $(TARGET_PRODUCT)))
+CDEFINES += -DCONFIG_SND_SOC_AWINIC_AW882XX
+endif
+
 KBUILD_CPPFLAGS += $(CDEFINES)
 
 # Currently, for versions of gcc which support it, the kernel Makefile

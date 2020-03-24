@@ -71,6 +71,24 @@ struct walt_sched_stats {
 	unsigned int nr_rtg_high_prio_tasks;
 };
 
+struct walt_task_group {
+	/* Toggle ability to override sched boost enabled */
+	bool sched_boost_no_override;
+	/*
+	 * Controls whether a cgroup is eligible for sched boost or not. This
+	 * can temporariliy be disabled by the kernel based on the no_override
+	 * flag above.
+	 */
+	bool sched_boost_enabled;
+	/*
+	 * Controls whether tasks of this cgroup should be colocated with each
+	 * other and tasks of other cgroups that have the same flag turned on.
+	 */
+	bool colocate;
+	/* Controls whether further updates are allowed to the colocate flag */
+	bool colocate_update_disabled;
+};
+
 struct group_cpu_time {
 	u64 curr_runnable_sum;
 	u64 prev_runnable_sum;
@@ -415,6 +433,9 @@ struct task_group {
 	unsigned int		latency_sensitive;
 	/* Boosted flag for a task group */
 	unsigned int 		boosted;
+#ifdef CONFIG_SCHED_WALT
+	struct walt_task_group	wtg;
+#endif /* CONFIG_SCHED_WALT */
 #endif
 
 };
@@ -2862,9 +2883,6 @@ extern void clear_top_tasks_bitmap(unsigned long *bitmap);
 extern bool task_sched_boost(struct task_struct *p);
 extern int sync_cgroup_colocation(struct task_struct *p, bool insert);
 extern bool schedtune_task_colocated(struct task_struct *p);
-extern void update_cgroup_boost_settings(void);
-extern void restore_cgroup_boost_settings(void);
-
 #else
 static inline bool schedtune_task_colocated(struct task_struct *p)
 {
@@ -2876,8 +2894,6 @@ static inline bool task_sched_boost(struct task_struct *p)
 	return true;
 }
 
-static inline void update_cgroup_boost_settings(void) { }
-static inline void restore_cgroup_boost_settings(void) { }
 #endif
 
 extern int alloc_related_thread_groups(void);
@@ -3123,3 +3139,9 @@ struct sched_avg_stats {
 	int nr_scaled;
 };
 extern void sched_get_nr_running_avg(struct sched_avg_stats *stats);
+
+#if defined(CONFIG_SCHED_WALT) && defined(CONFIG_UCLAMP_TASK_GROUP)
+extern void walt_init_sched_boost(struct task_group *tg);
+#else
+static inline void walt_init_sched_boost(struct task_group *tg) {}
+#endif

@@ -3862,3 +3862,7 @@ unlock_mutex:
 	return ret;
 }
 #endif
+
+#if defined(CONFIG_UCLAMP_TASK_GROUP)
+void __weak walt_init_sched_boost(struct task_group *tg) { }
+#endif

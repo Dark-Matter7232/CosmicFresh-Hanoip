@@ -30,6 +30,44 @@ enum sched_boost_policy boost_policy;
 static enum sched_boost_policy boost_policy_dt = SCHED_BOOST_NONE;
 static DEFINE_MUTEX(boost_mutex);
 
+#if defined(CONFIG_UCLAMP_TASK_GROUP)
+void walt_init_sched_boost(struct task_group *tg)
+{
+	tg->wtg.sched_boost_no_override = false;
+	tg->wtg.sched_boost_enabled = true;
+	tg->wtg.colocate = false;
+	tg->wtg.colocate_update_disabled = false;
+}
+
+static void update_cgroup_boost_settings(void)
+{
+	struct task_group *tg;
+
+	rcu_read_lock();
+	list_for_each_entry_rcu(tg, &task_groups, list) {
+		if (tg->wtg.sched_boost_no_override)
+			continue;
+
+		tg->wtg.sched_boost_enabled = false;
+	}
+	rcu_read_unlock();
+}
+
+static void restore_cgroup_boost_settings(void)
+{
+	struct task_group *tg;
+
+	rcu_read_lock();
+	list_for_each_entry_rcu(tg, &task_groups, list)
+		tg->wtg.sched_boost_enabled = true;
+	rcu_read_unlock();
+}
+
+#else
+static void update_cgroup_boost_settings(void) { }
+static void restore_cgroup_boost_settings(void) { }
+#endif
+
 /*
  * Scheduler boost type and boost policy might at first seem unrelated,
  * however, there exists a connection between them that will allow us

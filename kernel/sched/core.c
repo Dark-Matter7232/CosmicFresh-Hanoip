@@ -7623,6 +7623,8 @@ void __init sched_init(void)
 
 	init_uclamp();
 
+	walt_init_sched_boost(&root_task_group);
+
 	scheduler_running = 1;
 }
 

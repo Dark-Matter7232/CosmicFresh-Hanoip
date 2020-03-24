@@ -142,41 +142,6 @@ struct boost_groups {
 DEFINE_PER_CPU(struct boost_groups, cpu_boost_groups);
 
 #ifdef CONFIG_SCHED_WALT
-static inline void init_sched_boost(struct schedtune *st)
-{
-	st->sched_boost_no_override = false;
-	st->sched_boost_enabled = true;
-	st->colocate = false;
-	st->colocate_update_disabled = false;
-}
-
-void update_cgroup_boost_settings(void)
-{
-	int i;
-
-	for (i = 0; i < BOOSTGROUPS_COUNT; i++) {
-		if (!allocated_group[i])
-			break;
-
-		if (allocated_group[i]->sched_boost_no_override)
-			continue;
-
-		allocated_group[i]->sched_boost_enabled = false;
-	}
-}
-
-void restore_cgroup_boost_settings(void)
-{
-	int i;
-
-	for (i = 0; i < BOOSTGROUPS_COUNT; i++) {
-		if (!allocated_group[i])
-			break;
-
-		allocated_group[i]->sched_boost_enabled = true;
-	}
-}
-
 bool task_sched_boost(struct task_struct *p)
 {
 	struct schedtune *st;
@@ -420,8 +385,6 @@ bool schedtune_task_colocated(struct task_struct *p)
 }
 
 #else /* CONFIG_SCHED_WALT */
-
-static inline void init_sched_boost(struct schedtune *st) { }
 
 #endif /* CONFIG_SCHED_WALT */
 
@@ -713,7 +676,7 @@ schedtune_css_alloc(struct cgroup_subsys_state *parent_css)
 
 	/* Initialize per CPUs boost group support */
 	st->idx = idx;
-	init_sched_boost(st);
+	walt_init_sched_boost(st);
 	if (schedtune_boostgroup_init(st))
 		goto release;
 

@@ -5840,7 +5840,7 @@ err:
 	return ret;
 }
 
-#if !defined(CONFIG_SND_SOC_MADERA) && !defined(CONFIG_SND_SOC_BOLERO_MI2S_PA)
+#if !defined(CONFIG_SND_SOC_MADERA) && !defined(CONFIG_SND_SOC_BOLERO_MI2S_PA) && !defined(CONFIG_SND_SOC_TAS2558)
 static int sm6150_tdm_snd_hw_params(struct snd_pcm_substream *substream,
 				     struct snd_pcm_hw_params *params)
 {
@@ -7323,7 +7323,7 @@ static struct snd_soc_dai_link msm_common_be_dai_links[] = {
 		.be_hw_params_fixup = msm_be_hw_params_fixup,
 		.ignore_suspend = 1,
 	},
-#if !defined(CONFIG_SND_SOC_MADERA) && !defined(CONFIG_SND_SOC_BOLERO_MI2S_PA)
+#if !defined(CONFIG_SND_SOC_MADERA) && !defined(CONFIG_SND_SOC_BOLERO_MI2S_PA) && !defined(CONFIG_SND_SOC_TAS2558)
 	{
 		.name = LPASS_BE_PRI_TDM_RX_0,
 		.stream_name = "Primary TDM0 Playback",
@@ -8896,6 +8896,53 @@ static struct snd_soc_dai_link msm_prince_qcom_i2s_be_dai_links[] = {
 		.ignore_suspend = 1,
 	},
 };
+#elif defined(CONFIG_SND_SOC_TAS2558)
+static struct snd_soc_dai_link msm_tas2558_be_dai_links[] = {
+	{
+		.name = LPASS_BE_TERT_MI2S_RX,
+		.stream_name = "Tertiary MI2S Playback",
+		.cpu_dai_name = "msm-dai-q6-mi2s.2",
+		.platform_name = "msm-pcm-routing",
+		.codec_name     = "tas2562.0-004c",
+		.codec_dai_name = "tas2562 ASI1",
+		.no_pcm = 1,
+		.dpcm_playback = 1,
+		.id = MSM_BACKEND_DAI_TERTIARY_MI2S_RX,
+		.be_hw_params_fixup = msm_be_hw_params_fixup,
+		.ops = &msm_mi2s_be_ops,
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+	},
+	{
+		.name = LPASS_BE_TERT_MI2S_TX,
+		.stream_name = "Tertiary MI2S Capture",
+		.cpu_dai_name = "msm-dai-q6-mi2s.2",
+		.platform_name = "msm-pcm-routing",
+		.codec_name     = "tas2562.0-004c",
+		.codec_dai_name = "tas2562 ASI1",
+		.no_pcm = 1,
+		.dpcm_capture = 1,
+		.id = MSM_BACKEND_DAI_TERTIARY_MI2S_TX,
+		.be_hw_params_fixup = msm_be_hw_params_fixup,
+		.ops = &msm_mi2s_be_ops,
+		.ignore_suspend = 1,
+	},
+	{ /* CONFIG_TAS25XX_ALGO */
+		.name = "TERT_MI2S_TX Hostless",
+		.stream_name = "Tert MI2S_TX Hostless",
+		.cpu_dai_name = "TERT_MI2S_TX_HOSTLESS",
+		.platform_name = "msm-pcm-hostless",
+		.dynamic = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			    SND_SOC_DPCM_TRIGGER_POST},
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		.codec_name = "snd-soc-dummy",
+		.codec_dai_name = "snd-soc-dummy-dai",
+	},
+};
 #endif
 
 static struct snd_soc_dai_link msm_sm6150_dai_links[
@@ -8918,6 +8965,8 @@ static struct snd_soc_dai_link msm_sm6150_dai_links[
 #ifdef CONFIG_SND_SOC_BOLERO_MI2S_PA
 			 ARRAY_SIZE(msm_tert_mi2s_aw882xx_be_dai_links) +
 			 ARRAY_SIZE(msm_prince_qcom_i2s_be_dai_links) +
+#elif defined(CONFIG_SND_SOC_TAS2558)
+			 ARRAY_SIZE(msm_tas2558_be_dai_links) +
 #endif
 			 ARRAY_SIZE(msm_wsa_cdc_dma_be_dai_links) +
 			 ARRAY_SIZE(msm_rx_tx_cdc_dma_be_dai_links)];
@@ -9253,6 +9302,8 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 #ifdef CONFIG_SND_SOC_BOLERO_MI2S_PA
 	u32 aw882xx_pa = 0;
 	u32 prince_pa = 0;
+#elif defined(CONFIG_SND_SOC_TAS2558)
+	u32 tas2558_pa = 0;
 #endif
 
 	match = of_match_node(sm6150_asoc_machine_of_match, dev->of_node);
@@ -9359,8 +9410,10 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 		if (rc)
 			dev_dbg(dev, "%s: No DT match for cirrus prince pa\n",
 				__func__);
+#elif defined(CONFIG_SND_SOC_TAS2558)
+		rc = of_property_read_u32(dev->of_node,
+			   "ti,tas2558-max-devs", &tas2558_pa);
 #endif
-
 		if (tavil_codec) {
 			card->late_probe =
 				msm_snd_card_tavil_late_probe;
@@ -9386,6 +9439,9 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
                                 ARRAY_SIZE(msm_tert_mi2s_aw882xx_fe_dai_links);
 		}else if (prince_pa) {
 			dev_info(dev, "%s: Don't need to add fe dai\n", __func__);
+#elif defined(CONFIG_SND_SOC_TAS2558)
+		} else if (tas2558_pa) {
+			dev_info(dev, "%s: Don't add msm_bolero_fe_dai_links\n", __func__);
 #endif
 		}else {
 			memcpy(msm_sm6150_dai_links + total_links,
@@ -9440,6 +9496,16 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
                                sizeof(msm_rx_tx_cdc_dma_be_dai_links));
                         total_links +=
                                 ARRAY_SIZE(msm_rx_tx_cdc_dma_be_dai_links);
+#elif defined(CONFIG_SND_SOC_TAS2558)
+		} else if (tas2558_pa) {
+			memcpy(msm_sm6150_dai_links + total_links,
+				msm_tas2558_be_dai_links, sizeof(msm_tas2558_be_dai_links));
+			total_links += ARRAY_SIZE(msm_tas2558_be_dai_links);
+
+			memcpy(msm_sm6150_dai_links + total_links,
+				msm_rx_tx_cdc_dma_be_dai_links,
+				sizeof(msm_rx_tx_cdc_dma_be_dai_links));
+			total_links += ARRAY_SIZE(msm_rx_tx_cdc_dma_be_dai_links);
 #endif
 		} else {
 			memcpy(msm_sm6150_dai_links + total_links,

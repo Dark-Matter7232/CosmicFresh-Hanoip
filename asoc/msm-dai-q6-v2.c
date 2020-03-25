@@ -5092,7 +5092,7 @@ static int msm_dai_q6_mi2s_hw_params(struct snd_pcm_substream *substream,
 	}
 #endif
 
-#ifdef CONFIG_SND_SOC_BOLERO_MI2S_PA
+#if defined(CONFIG_SND_SOC_BOLERO_MI2S_PA) || defined(CONFIG_SND_SOC_TAS2558)
 	dai_data->channels = params_channels(params);
 #endif
 

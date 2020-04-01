@@ -204,6 +204,10 @@ ifneq (,$(filter foles%, $(TARGET_PRODUCT)))
 CDEFINES += -DCONFIG_SEC_MI2S_MODS
 endif
 
+ifneq (,$(filter bornr%, $(TARGET_PRODUCT)))
+CDEFINES += -DCONFIG_TAS25XX_ALGO
+endif
+
 KBUILD_CPPFLAGS += $(CDEFINES)
 
 # Currently, for versions of gcc which support it, the kernel Makefile

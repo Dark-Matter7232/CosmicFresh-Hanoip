@@ -68,6 +68,9 @@ ifeq ($(KERNEL_BUILD), 0)
 	ifneq (,$(filter bornr%, $(TARGET_PRODUCT)))
 		INCS    +=  -include $(AUDIO_ROOT)/config/bornrautoconf.h
 	endif
+	ifneq (,$(filter minsk%, $(TARGET_PRODUCT)))
+		INCS    +=  -include $(AUDIO_ROOT)/config/minskautoconf.h
+	endif
 endif
 
 # As per target team, build is done as follows:

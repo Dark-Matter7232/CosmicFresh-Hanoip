@@ -173,6 +173,10 @@ ifneq (,$(filter odessa%, $(TARGET_PRODUCT)))
 CDEFINES += -DCONFIG_SND_SOC_AWINIC_AW882XX
 endif
 
+ifneq (,$(filter minsk%, $(TARGET_PRODUCT)))
+CDEFINES += -DCONFIG_SND_SOC_AWINIC_AW882XX
+endif
+
 ifneq (,$(filter bornr%, $(TARGET_PRODUCT)))
 CDEFINES += -DCONFIG_TAS25XX_ALGO
 endif

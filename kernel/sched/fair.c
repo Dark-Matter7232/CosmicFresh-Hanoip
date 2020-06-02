@@ -7685,8 +7685,9 @@ static inline int find_best_target(struct task_struct *p, int *backup_cpu,
 				most_spare_cap_cpu = i;
 			}
 
-			if (per_task_boost(cpu_rq(i)->curr) ==
-					TASK_BOOST_STRICT_MAX)
+			if ((per_task_boost(cpu_rq(i)->curr) ==
+					TASK_BOOST_STRICT_MAX) &&
+					!fbt_env->strict_max)
 				continue;
 			/*
 			 * Cumulative demand may already be accounting for the

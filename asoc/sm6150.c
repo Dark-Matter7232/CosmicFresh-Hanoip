@@ -242,6 +242,7 @@ struct msm_asoc_mach_data {
 	struct device_node *hph_en0_gpio_p; /* used by pinctrl API */
 	bool is_afe_config_done;
 	struct device_node *fsa_handle;
+	int ext_hac_gpio;
 };
 
 struct msm_asoc_wcd93xx_codec {
@@ -470,6 +471,8 @@ static struct dev_config aux_pcm_tx_cfg[] = {
 	[QUIN_AUX_PCM] = {SAMPLING_RATE_8KHZ, SNDRV_PCM_FORMAT_S16_LE, 1},
 };
 static int msm_vi_feed_tx_ch = 2;
+static int hac_status;
+static const char *const hac_switch_text[] = {"Off","On"};
 static const char *const slim_rx_ch_text[] = {"One", "Two"};
 static const char *const slim_tx_ch_text[] = {"One", "Two", "Three", "Four",
 						"Five", "Six", "Seven",
@@ -655,6 +658,7 @@ static SOC_ENUM_SINGLE_EXT_DECL(tx_cdc_dma_tx_3_sample_rate,
 				cdc_dma_sample_rate_text);
 static SOC_ENUM_SINGLE_EXT_DECL(tx_cdc_dma_tx_4_sample_rate,
 				cdc_dma_sample_rate_text);
+static SOC_ENUM_SINGLE_EXT_DECL(hac_func, hac_switch_text);
 
 static int msm_hifi_control;
 static bool codec_reg_done;
@@ -3599,6 +3603,65 @@ static int mods_format_put(struct snd_kcontrol *kcontrol,
 }
 #endif
 
+static int hac_pa_ctrl(struct snd_soc_component *component)
+{
+	int pa_mode = 2;
+	struct snd_soc_dapm_context *dapm = snd_soc_component_get_dapm(component);
+	struct snd_soc_card *card = component->card;
+	struct msm_asoc_mach_data *pdata =
+				snd_soc_card_get_drvdata(card);
+
+	pr_info("%s: set HAC %d\n", __func__, hac_status);
+
+	if (!pdata || !pdata->ext_hac_gpio) {
+		pr_err("%s: hac_en_gpio is invalid\n", __func__);
+		return -EINVAL;
+	}
+	if (hac_status) {
+		while(pa_mode > 0){
+			if (gpio_is_valid(pdata->ext_hac_gpio)) {
+				pr_debug("%s: hac gpio exist\n", __func__);
+				gpio_direction_output(pdata->ext_hac_gpio, 0);
+				udelay(3);
+				gpio_direction_output(pdata->ext_hac_gpio, 1);
+				udelay(3);
+				pa_mode--;
+			} else {
+				pr_err("%s: hac gpio not exist\n", __func__);
+				return 0;
+			}
+		}
+	} else {
+		gpio_direction_output(pdata->ext_hac_gpio, 0);
+	}
+	snd_soc_dapm_sync(dapm);
+
+	return 0;
+}
+
+static int hac_switch_get(struct snd_kcontrol *kcontrol,
+				struct snd_ctl_elem_value *ucontrol)
+{
+	ucontrol->value.integer.value[0] = hac_status;
+	pr_debug("%s:  hac status %ld\n", __func__, ucontrol->value.integer.value[0]);
+
+	return 0;
+}
+
+static int hac_switch_put(struct snd_kcontrol *kcontrol,
+				    struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_component *component = snd_soc_kcontrol_component(kcontrol);
+
+	if(ucontrol->value.integer.value[0] == hac_status)
+		return 1;
+	hac_status = ucontrol->value.integer.value[0];
+	hac_pa_ctrl(component);
+	pr_debug("%s: value.integer.value = %d\n", __func__,
+				ucontrol->value.integer.value[0]);
+	return 0;
+}
+
 static const struct snd_kcontrol_new msm_int_snd_controls[] = {
 	SOC_ENUM_EXT("WSA_CDC_DMA_RX_0 Channels", wsa_cdc_dma_rx_0_chs,
 			cdc_dma_rx_ch_get, cdc_dma_rx_ch_put),
@@ -3997,6 +4060,8 @@ static const struct snd_kcontrol_new msm_common_snd_controls[] = {
 			msm_bt_sample_rate_tx_put),
 	SOC_ENUM_EXT("VI_FEED_TX Channels", vi_feed_tx_chs,
 			msm_vi_feed_tx_ch_get, msm_vi_feed_tx_ch_put),
+	SOC_ENUM_EXT("HAC Switch", hac_func,
+			hac_switch_get, hac_switch_put),
 };
 
 #ifndef CONFIG_SND_SOC_MADERA
@@ -10321,6 +10386,18 @@ static int msm_asoc_machine_probe(struct platform_device *pdev)
 		goto err;
 	}
 	dev_info(&pdev->dev, "Sound card %s registered\n", card->name);
+
+	pdata->ext_hac_gpio = of_get_named_gpio(pdev->dev.of_node,
+						"qcom,ext-hac-gpio", 0);
+	if (!gpio_is_valid(pdata->ext_hac_gpio)) {
+		dev_err(&pdev->dev, "property %s not detected in node %s",
+			"qcom,ext-hac-gpio", pdev->dev.of_node->full_name);
+	} else {
+		ret = gpio_request(pdata->ext_hac_gpio,
+			"ext_hac_gpio");
+		gpio_export(pdata->ext_hac_gpio,0);
+		dev_err(&pdev->dev, "qcom,ext-hac-gpio = %d ret=%d", pdata->ext_hac_gpio,ret);
+	}
 
 #ifndef CONFIG_SND_SOC_MADERA
 	pdata->hph_en1_gpio = of_get_named_gpio(pdev->dev.of_node,

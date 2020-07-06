@@ -44,8 +44,6 @@
 #define AFE_PARAM_ID_AWDSP_RX_SET_ENABLE	(0x10013D11)
 #define AFE_PARAM_ID_AWDSP_TX_SET_ENABLE	(0x10013D13)
 #define AFE_PARAM_ID_AWDSP_RX_PARAMS            (0x10013D12)
-#define AFE_PORT_ID_AWDSP_RX			(AFE_PORT_ID_TERTIARY_MI2S_RX)
-#define AFE_PORT_ID_AWDSP_TX			(AFE_PORT_ID_TERTIARY_MI2S_TX)
 #endif /* #ifdef CONFIG_SND_SOC_AWINIC_AW882XX */
 
 #define WAKELOCK_TIMEOUT	5000
@@ -2648,17 +2646,15 @@ done:
 }
 
 #ifdef CONFIG_SND_SOC_AWINIC_AW882XX
-int aw_send_afe_rx_module_enable(void *buf, int size)
+int aw_send_afe_rx_module_enable(uint32_t rx_port_id, void *buf, int size)
 {
 	union afe_spkr_prot_config config;
-	int32_t port_id = AFE_PORT_ID_AWDSP_RX;
 
 	if (size > sizeof(config))
 		return -EINVAL;
-
 	memcpy(&config, buf, size);
 
-	if (afe_spk_prot_prepare(port_id, 0,
+	if (afe_spk_prot_prepare(rx_port_id, 0,
 		AFE_PARAM_ID_AWDSP_RX_SET_ENABLE, &config)) {
 		pr_err("%s: set bypass failed \n", __func__);
 		return -EINVAL;
@@ -2666,17 +2662,16 @@ int aw_send_afe_rx_module_enable(void *buf, int size)
 	return 0;
 }
 EXPORT_SYMBOL(aw_send_afe_rx_module_enable);
-int aw_send_afe_tx_module_enable(void *buf, int size)
+int aw_send_afe_tx_module_enable(uint32_t tx_port_id, void *buf, int size)
 {
 	union afe_spkr_prot_config config;
-	int32_t port_id = AFE_PORT_ID_AWDSP_TX;
 
 	if (size > sizeof(config))
 		return -EINVAL;
 
 	memcpy(&config, buf, size);
 
-	if (afe_spk_prot_prepare(port_id, 0,
+	if (afe_spk_prot_prepare(tx_port_id, 0,
 		AFE_PARAM_ID_AWDSP_TX_SET_ENABLE, &config)) {
 		pr_err("%s: set bypass failed \n", __func__);
 		return -EINVAL;
@@ -2685,10 +2680,12 @@ int aw_send_afe_tx_module_enable(void *buf, int size)
 }
 EXPORT_SYMBOL(aw_send_afe_tx_module_enable);
 
-int aw_send_afe_cal_apr(uint32_t param_id, void *buf, int cmd_size, bool write)
+int aw_send_afe_cal_apr(uint32_t rx_port_id, uint32_t tx_port_id,
+			uint32_t param_id, void *buf, int cmd_size, bool write)
 {
-	int32_t result = 0, port_id = AFE_PORT_ID_AWDSP_RX;
+	int32_t result = 0;
 	int32_t  module_id = AFE_MODULE_ID_AWDSP_RX;
+	uint32_t port_id = 0;
 	uint32_t port_index = 0;
 	uint32_t payload_size = 0;
 	size_t len;
@@ -2698,8 +2695,9 @@ int aw_send_afe_cal_apr(uint32_t param_id, void *buf, int cmd_size, bool write)
 
 	pr_debug("%s: enter\n", __func__);
 
+	port_id = rx_port_id;
 	if (param_id == AFE_PARAM_ID_AWDSP_TX_SET_ENABLE) {
-		port_id = AFE_PORT_ID_AWDSP_TX;
+		port_id = tx_port_id;
 		module_id = AFE_MODULE_ID_AWDSP_TX;
 	}
 

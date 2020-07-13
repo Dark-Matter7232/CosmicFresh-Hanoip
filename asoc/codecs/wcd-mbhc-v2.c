@@ -2014,6 +2014,14 @@ int wcd_mbhc_init(struct wcd_mbhc *mbhc, struct snd_soc_codec *codec,
 		goto err;
 	}
 
+	ret = of_property_read_bool(card->dev->of_node, "qcom,msm-mbhc-hs-slow-insert");
+	if (ret)
+		mbhc->is_slow_plug = true;
+	else{
+		mbhc->is_slow_plug = false;
+		dev_dbg(card->dev, "%s: No DT match slow plug\n", __func__);
+	}
+
 	ret = of_property_read_u32(card->dev->of_node, hs_thre,
 				&(mbhc->hs_thr));
 	if (ret)

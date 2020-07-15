@@ -672,7 +672,7 @@ static void wcd_correct_swch_plug(struct work_struct *work)
 				wcd_mbhc_find_plug_and_report(mbhc, plug_type);
 				WCD_MBHC_RSC_UNLOCK(mbhc);
 			}
-			pr_debug("%s: is_slow_plug is config %d\n",__func__);
+			pr_debug("%s: is_slow_plug is config \n",__func__);
 		}
 	}
 

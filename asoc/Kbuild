@@ -98,8 +98,8 @@ COMMON_DIR :=	include
 COMMON_INC :=	-I$(AUDIO_ROOT)/$(COMMON_DIR)
 
 ########### MADERA ############
-MADERA_INC := -I$(TOP)/motorola/kernel/modules/include \
-	-I$(TOP)/motorola/kernel/modules/sound/soc/codecs
+MADERA_INC := -I$(ANDROID_BUILD_TOP)/motorola/kernel/modules/include \
+	-I$(ANDROID_BUILD_TOP)/motorola/kernel/modules/sound/soc/codecs
 
 ############ ASoC Drivers ############
 

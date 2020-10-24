@@ -441,7 +441,7 @@ static struct dev_config mi2s_rx_cfg[] = {
 
 static struct dev_config mi2s_tx_cfg[] = {
 	[PRIM_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 1},
-#ifdef CONFIG_SEC_MI2S_MODS
+#if defined(CONFIG_SEC_MI2S_MODS) || defined(CONFIG_SEC_MI2S_AWINIC)
 	[SEC_MI2S]  = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 2},
 #else
 	[SEC_MI2S]  = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 1},
@@ -8857,6 +8857,60 @@ static struct snd_soc_dai_link msm_madera_fe_dai_links[] = {
 #endif
 
 #ifdef CONFIG_SND_SOC_BOLERO_MI2S_PA
+
+#ifdef CONFIG_SEC_MI2S_AWINIC
+static struct snd_soc_dai_link msm_sec_mi2s_aw882xx_fe_dai_links[] = {
+        {
+                .name = "SEC_MI2S_TX Hostless",
+                .stream_name = "SEC MI2S_TX Hostless",
+                .cpu_dai_name = "SEC_MI2S_TX_HOSTLESS",
+                .platform_name = "msm-pcm-hostless",
+                .dynamic = 1,
+                .dpcm_capture = 1,
+                .trigger = {SND_SOC_DPCM_TRIGGER_POST,
+                            SND_SOC_DPCM_TRIGGER_POST},
+                .no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+                .ignore_suspend = 1,
+                .ignore_pmdown_time = 1,
+                .codec_name = "snd-soc-dummy",
+                .codec_dai_name = "snd-soc-dummy-dai",
+        },
+};
+
+static struct snd_soc_dai_link msm_sec_mi2s_aw882xx_be_dai_links[] = {
+        {
+                .name = LPASS_BE_SEC_MI2S_RX,
+                .stream_name = "Secondary MI2S Playback",
+                .cpu_dai_name = "msm-dai-q6-mi2s.1",
+                .platform_name = "msm-pcm-routing",
+                .codec_name = "aw882xx_smartpa.0-0034",
+                .codec_dai_name = "aw882xx-aif",
+                .no_pcm = 1,
+                .dpcm_playback = 1,
+                .id = MSM_BACKEND_DAI_SECONDARY_MI2S_RX,
+                .be_hw_params_fixup = msm_be_hw_params_fixup,
+                .ops = &msm_mi2s_be_ops,
+                .ignore_suspend = 1,
+                .ignore_pmdown_time = 1,
+        },
+        {
+                .name = LPASS_BE_SEC_MI2S_TX,
+                .stream_name = "Secondary MI2S Capture",
+                .cpu_dai_name = "msm-dai-q6-mi2s.1",
+                .platform_name = "msm-pcm-routing",
+                .codec_name = "aw882xx_smartpa.0-0034",
+                .codec_dai_name = "aw882xx-aif",
+                .no_pcm = 1,
+                .dpcm_capture = 1,
+                .id = MSM_BACKEND_DAI_SECONDARY_MI2S_TX,
+                .be_hw_params_fixup = msm_be_hw_params_fixup,
+                .ops = &msm_mi2s_be_ops,
+                .ignore_suspend = 1,
+        },
+};
+
+#else
+
 static struct snd_soc_dai_link msm_tert_mi2s_aw882xx_fe_dai_links[] = {
         {
                 .name = "TERT_MI2S_TX Hostless",
@@ -8918,6 +8972,8 @@ static struct snd_soc_dai_link msm_tert_mi2s_aw882xx_be_dai_links[] = {
                 .ignore_suspend = 1,
         },
 };
+
+#endif
 
 static struct snd_soc_dai_link_component cirrus_prince_qcom_i2s[] = {
 	{
@@ -9014,7 +9070,11 @@ static struct snd_soc_dai_link msm_sm6150_dai_links[
 			 ARRAY_SIZE(msm_common_misc_fe_dai_links) +
 			 ARRAY_SIZE(msm_int_compress_capture_dai) +
 #ifdef CONFIG_SND_SOC_BOLERO_MI2S_PA
+#ifdef CONFIG_SEC_MI2S_AWINIC
+			 ARRAY_SIZE(msm_sec_mi2s_aw882xx_fe_dai_links) +
+#else
 			 ARRAY_SIZE(msm_tert_mi2s_aw882xx_fe_dai_links) +
+#endif
 #endif
 			 ARRAY_SIZE(msm_common_be_dai_links) +
 			 ARRAY_SIZE(msm_tavil_be_dai_links) +
@@ -9024,7 +9084,11 @@ static struct snd_soc_dai_link msm_sm6150_dai_links[
 			 ARRAY_SIZE(msm_mi2s_be_dai_links) +
 			 ARRAY_SIZE(msm_auxpcm_be_dai_links) +
 #ifdef CONFIG_SND_SOC_BOLERO_MI2S_PA
+#ifdef CONFIG_SEC_MI2S_AWINIC
+			 ARRAY_SIZE(msm_sec_mi2s_aw882xx_be_dai_links) +
+#else
 			 ARRAY_SIZE(msm_tert_mi2s_aw882xx_be_dai_links) +
+#endif
 			 ARRAY_SIZE(msm_prince_qcom_i2s_be_dai_links) +
 #elif defined(CONFIG_SND_SOC_TAS2558)
 			 ARRAY_SIZE(msm_tas2558_be_dai_links) +
@@ -9493,18 +9557,26 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 				ARRAY_SIZE(msm_tasha_fe_dai_links);
 #ifdef CONFIG_SND_SOC_BOLERO_MI2S_PA
 		} else if (aw882xx_pa) {
-                        memcpy(msm_sm6150_dai_links + total_links,
-                                msm_tert_mi2s_aw882xx_fe_dai_links,
-                                sizeof(msm_tert_mi2s_aw882xx_fe_dai_links));
-                        total_links +=
-                                ARRAY_SIZE(msm_tert_mi2s_aw882xx_fe_dai_links);
+#ifdef CONFIG_SEC_MI2S_AWINIC
+			memcpy(msm_sm6150_dai_links + total_links,
+				msm_sec_mi2s_aw882xx_fe_dai_links,
+				sizeof(msm_sec_mi2s_aw882xx_fe_dai_links));
+			total_links +=
+				ARRAY_SIZE(msm_sec_mi2s_aw882xx_fe_dai_links);
+#else
+			memcpy(msm_sm6150_dai_links + total_links,
+				msm_tert_mi2s_aw882xx_fe_dai_links,
+				sizeof(msm_tert_mi2s_aw882xx_fe_dai_links));
+			total_links +=
+				ARRAY_SIZE(msm_tert_mi2s_aw882xx_fe_dai_links);
+#endif
 		}else if (prince_pa) {
 			dev_info(dev, "%s: Don't need to add fe dai\n", __func__);
 #elif defined(CONFIG_SND_SOC_TAS2558)
 		} else if (tas2558_pa) {
 			dev_info(dev, "%s: Don't add msm_bolero_fe_dai_links\n", __func__);
 #endif
-		}else {
+		} else {
 			memcpy(msm_sm6150_dai_links + total_links,
 				msm_bolero_fe_dai_links,
 				sizeof(msm_bolero_fe_dai_links));
@@ -9536,10 +9608,18 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 			total_links += ARRAY_SIZE(msm_tasha_be_dai_links);
 #ifdef CONFIG_SND_SOC_BOLERO_MI2S_PA
 		} else if (aw882xx_pa) {
+#ifdef CONFIG_SEC_MI2S_AWINIC
 			memcpy(msm_sm6150_dai_links + total_links,
-                                        msm_tert_mi2s_aw882xx_be_dai_links,
-                                        sizeof(msm_tert_mi2s_aw882xx_be_dai_links));
-                        total_links += ARRAY_SIZE(msm_tert_mi2s_aw882xx_be_dai_links);
+				msm_sec_mi2s_aw882xx_be_dai_links,
+				sizeof(msm_sec_mi2s_aw882xx_be_dai_links));
+			total_links += ARRAY_SIZE(msm_sec_mi2s_aw882xx_be_dai_links);
+#else
+			memcpy(msm_sm6150_dai_links + total_links,
+				msm_tert_mi2s_aw882xx_be_dai_links,
+				sizeof(msm_tert_mi2s_aw882xx_be_dai_links));
+			total_links += ARRAY_SIZE(msm_tert_mi2s_aw882xx_be_dai_links);
+#endif
+
 
 			memcpy(msm_sm6150_dai_links + total_links,
 					msm_rx_tx_cdc_dma_be_dai_links,

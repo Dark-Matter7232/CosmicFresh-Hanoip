@@ -169,6 +169,10 @@ ifneq (,$(filter liber%, $(TARGET_PRODUCT)))
 CDEFINES += -DCONFIG_SND_SOC_AWINIC_AW882XX
 endif
 
+ifneq (,$(filter hanoi%, $(TARGET_PRODUCT)))
+CDEFINES += -DCONFIG_SND_SOC_AWINIC_AW882XX
+endif
+
 ifneq (,$(filter odessa%, $(TARGET_PRODUCT)))
 CDEFINES += -DCONFIG_SND_SOC_AWINIC_AW882XX
 endif

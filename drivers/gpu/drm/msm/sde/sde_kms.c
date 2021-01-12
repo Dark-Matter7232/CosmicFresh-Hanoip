@@ -2802,7 +2802,11 @@ retry:
 	if (ret)
 		goto end;
 
-	drm_atomic_commit(state);
+	ret = drm_atomic_commit(state);
+	if (ret) {
+		SDE_ERROR("error %d committing state\n", ret);
+		goto end;
+	}
 end:
 	if (state)
 		drm_atomic_state_put(state);

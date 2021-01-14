@@ -59,19 +59,19 @@ ifeq ($(KERNEL_BUILD), 0)
 		export
 		INCS    +=  -include $(AUDIO_ROOT)/config/qcs405autoconf.h
 	endif
-	ifneq (,$(filter liber%, $(TARGET_PRODUCT)))
+        ifeq ($(CONFIG_LIBER_DTB), y)
 		INCS    +=  -include $(AUDIO_ROOT)/config/liberautoconf.h
 	endif
-	ifneq (,$(filter hanoi%, $(TARGET_PRODUCT)))
+        ifeq ($(CONFIG_HANOI_DTB), y)
 		INCS    +=  -include $(AUDIO_ROOT)/config/hanoiautoconf.h
 	endif
-	ifneq (,$(filter odessa%, $(TARGET_PRODUCT)))
+        ifeq ($(CONFIG_ODESSA_DTB), y)
 		INCS    +=  -include $(AUDIO_ROOT)/config/odessaautoconf.h
 	endif
-	ifneq (,$(filter bornr%, $(TARGET_PRODUCT)))
+        ifeq ($(CONFIG_BORNR_DTB), y)
 		INCS    +=  -include $(AUDIO_ROOT)/config/bornrautoconf.h
 	endif
-	ifneq (,$(filter minsk%, $(TARGET_PRODUCT)))
+        ifeq ($(CONFIG_MINSK_DTB), y)
 		INCS    +=  -include $(AUDIO_ROOT)/config/minskautoconf.h
 	endif
 endif
@@ -206,11 +206,11 @@ CDEFINES +=	-DANI_LITTLE_BYTE_ENDIAN \
 		-Werror\
 		-D__linux__
 
-ifneq (,$(filter foles%, $(TARGET_PRODUCT)))
+ifeq ($(CONFIG_FOLES_DTB), y)
 CDEFINES += -DCONFIG_SEC_MI2S_MODS
 endif
 
-ifneq (,$(filter bornr%, $(TARGET_PRODUCT)))
+ifeq ($(CONFIG_BORNR_DTB), y)
 CDEFINES += -DCONFIG_TAS25XX_ALGO
 endif
 

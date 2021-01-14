@@ -165,23 +165,23 @@ CDEFINES +=	-DANI_LITTLE_BYTE_ENDIAN \
 		-Werror\
 		-D__linux__
 
-ifneq (,$(filter liber%, $(TARGET_PRODUCT)))
+ifeq ($(CONFIG_LIBER_DTB), y)
 CDEFINES += -DCONFIG_SND_SOC_AWINIC_AW882XX
 endif
 
-ifneq (,$(filter hanoi%, $(TARGET_PRODUCT)))
+ifeq ($(CONFIG_HANOI_DTB), y)
 CDEFINES += -DCONFIG_SND_SOC_AWINIC_AW882XX
 endif
 
-ifneq (,$(filter odessa%, $(TARGET_PRODUCT)))
+ifeq ($(CONFIG_ODESSA_DTB), y)
 CDEFINES += -DCONFIG_SND_SOC_AWINIC_AW882XX
 endif
 
-ifneq (,$(filter minsk%, $(TARGET_PRODUCT)))
+ifeq ($(CONFIG_MINSK_DTB), y)
 CDEFINES += -DCONFIG_SND_SOC_AWINIC_AW882XX
 endif
 
-ifneq (,$(filter bornr%, $(TARGET_PRODUCT)))
+ifeq ($(CONFIG_BORNR_DTB), y)
 CDEFINES += -DCONFIG_TAS25XX_ALGO
 endif
 

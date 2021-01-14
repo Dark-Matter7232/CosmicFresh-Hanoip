@@ -66,6 +66,10 @@ ifeq ($(CONFIG_ARCH_SDMSHRIKE), y)
 LINUXINCLUDE    += \
                 -include $(srctree)/techpack/audio/config/sm8150autoconf.h
 endif
+ifeq ($(CONFIG_LIBER_DTB), y)
+LINUXINCLUDE    += \
+                -include $(srctree)/techpack/audio/config/liberautoconf.h
+endif
 
 obj-y += soc/
 obj-y += dsp/

@@ -375,7 +375,7 @@ static struct msm_vidc_common_data trinket_common_data[] = {
 	},
 	{
 		.key = "qcom,max-hw-load",
-		.value = 1944000,
+		.value = 1216800,
 	},
 	{
 		.key = "qcom,max-hq-mbs-per-frame",

@@ -317,6 +317,8 @@ struct dsi_panel {
 	enum dsi_panel_power_off_mode power_off_mode;
 
 	bool hbm_state;
+	bool acl_state;
+	bool cabc_state;
 };
 
 static inline bool dsi_panel_ulps_feature_enabled(struct dsi_panel *panel)

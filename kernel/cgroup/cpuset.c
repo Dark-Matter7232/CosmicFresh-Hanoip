@@ -1798,15 +1798,13 @@ static ssize_t cpuset_write_resmask_wrapper(struct kernfs_open_file *of,
 	struct cpuset *cs = css_cs(of_css(of));
 	int i;
 
-	if (task_is_booster(current)) {
-		for (i = 0; i < ARRAY_SIZE(cs_targets); i++) {
-			struct cs_target tgt = cs_targets[i];
+	for (i = 0; i < ARRAY_SIZE(cs_targets); i++) {
+		struct cs_target tgt = cs_targets[i];
 
-			if (!strcmp(cs->css.cgroup->kn->name, tgt.name))
-				return cpuset_write_resmask_assist(of, tgt,
-								   nbytes, off);
+		if (!strcmp(cs->css.cgroup->kn->name, tgt.name))
+			return cpuset_write_resmask_assist(of, tgt,
+							   nbytes, off);
 		}
-	}
 #endif
 
 	buf = strstrip(buf);

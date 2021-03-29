@@ -71,6 +71,12 @@
 #define REPORT_MAX_COUNT 10000
 #endif
 
+/* Double tap detection resources */
+#define DT2W_FEATHER        150
+#define DT2W_TIME         500
+static unsigned long long tap_time_pre = 0;
+static int touch_nr = 0, x_pre = 0, y_pre = 0;
+
 /*****************************************************************************
 * Private enumerations, structures and unions using typedef
 *****************************************************************************/
@@ -302,9 +308,9 @@ static void fts_gesture_report(struct input_dev *input_dev, int gesture_id)
             return;
         }
         if (fts_data->pdata->report_gesture_key) {
-            input_report_key(fts_data->sensor_pdata->input_sensor_dev, KEY_F1, 1);
+            input_report_key(fts_data->sensor_pdata->input_sensor_dev, KEY_WAKEUP, 1);
             input_sync(fts_data->sensor_pdata->input_sensor_dev);
-            input_report_key(fts_data->sensor_pdata->input_sensor_dev, KEY_F1, 0);
+            input_report_key(fts_data->sensor_pdata->input_sensor_dev, KEY_WAKEUP, 0);
             input_sync(fts_data->sensor_pdata->input_sensor_dev);
         } else {
             input_report_abs(fts_data->sensor_pdata->input_sensor_dev,
@@ -368,7 +374,7 @@ static int fts_sensor_init(struct fts_ts_data *data)
 
     if (data->pdata->report_gesture_key) {
         __set_bit(EV_KEY, sensor_input_dev->evbit);
-        __set_bit(KEY_F1, sensor_input_dev->keybit);
+        __set_bit(KEY_WAKEUP, sensor_input_dev->keybit);
     }
     else {
         __set_bit(EV_ABS, sensor_input_dev->evbit);
@@ -420,6 +426,53 @@ int fts_sensor_remove(struct fts_ts_data *data)
     return 0;
 }
 #endif
+
+/* Doubletap2wake */
+static void doubletap2wake_reset(void) {
+	touch_nr = 0;
+	tap_time_pre = 0;
+	x_pre = 0;
+	y_pre = 0;
+}
+
+static unsigned int calc_feather(int coord, int prev_coord) {
+	int calc_coord = 0;
+	calc_coord = coord-prev_coord;
+	if (calc_coord < 0)
+		calc_coord = calc_coord * (-1);
+	return calc_coord;
+}
+
+static void new_touch(int x, int y) {
+	tap_time_pre = ktime_to_ms(ktime_get());
+	x_pre = x;
+	y_pre = y;
+	touch_nr++;
+}
+
+static bool detect_doubletap2wake(int x, int y)
+{
+	if (touch_nr == 0) {
+		new_touch(x, y);
+	} else if (touch_nr == 1) {
+		if ((calc_feather(x, x_pre) < DT2W_FEATHER) &&
+			(calc_feather(y, y_pre) < DT2W_FEATHER) &&
+			((ktime_to_ms(ktime_get())-tap_time_pre) < DT2W_TIME))
+			touch_nr++;
+		else {
+			doubletap2wake_reset();
+			new_touch(x, y);
+		}
+	} else {
+		doubletap2wake_reset();
+		new_touch(x, y);
+	}
+	if ((touch_nr > 1)) {
+		doubletap2wake_reset();
+		return true;
+	}
+	return false;
+}
 
 /*****************************************************************************
 * Name: fts_gesture_readdata
@@ -479,8 +532,10 @@ int fts_gesture_readdata(struct fts_ts_data *ts_data, u8 *data)
     }
 
     /* report gesture to OS */
-    fts_gesture_report(input_dev, gesture->gesture_id);
-    return 0;
+	if (detect_doubletap2wake(gesture->coordinate_x[0], gesture->coordinate_y[0]))
+		fts_gesture_report(input_dev, gesture->gesture_id);
+
+	return 0;
 }
 
 void fts_gesture_recovery(struct fts_ts_data *ts_data)

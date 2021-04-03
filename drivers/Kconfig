@@ -225,4 +225,8 @@ source "drivers/sensors/Kconfig"
 
 source "drivers/esoc/Kconfig"
 
+source "drivers/mmi_annotate/Kconfig"
+
+source "drivers/mmi_info/Kconfig"
+
 endmenu

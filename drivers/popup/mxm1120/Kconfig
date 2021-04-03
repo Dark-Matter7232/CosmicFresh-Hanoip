@@ -1,0 +1,9 @@
+config POPUP_MXM1120
+	tristate "mxm1120 POPUP"
+	default n
+	help
+	  Say Y here if you have a MXM1120 compatible
+	  device connected.
+
+	  This driver can also be built as a module.  If so, the module
+	  will be called mxm1120.

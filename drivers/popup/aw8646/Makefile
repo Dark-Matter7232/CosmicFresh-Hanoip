@@ -1,0 +1,1 @@
+obj-$(CONFIG_POPUP_AW8646) 	+= aw8646.o

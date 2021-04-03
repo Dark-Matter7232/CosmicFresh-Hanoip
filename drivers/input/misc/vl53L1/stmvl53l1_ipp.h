@@ -310,7 +310,7 @@ struct ipp_work_t {
 	uint8_t process_no;
 	/*!< [out] status from daemon */
 	int16_t status;
-	/*!< [in/out]Â unique xfer id */
+	/*!< [in/out] unique xfer id */
 	uint32_t xfer_id;
 	/*!< [in/out] effective data length including header*/
 	uint32_t payload;

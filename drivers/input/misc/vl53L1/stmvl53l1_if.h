@@ -80,7 +80,7 @@ enum __stmv53l1_parameter_name_e {
 	 */
 
 	VL53L1_DEVICEMODE_PAR = 6,
-	/*!< DEVICEMODE_PAR set ranging mode Â \n
+	/*!< DEVICEMODE_PAR set ranging mode  \n
 	 * valid mode value :
 	 * @li 1 @a VL53L1_PRESETMODE_RANGING default ranging
 	 * @li 2 @a VL53L1_PRESETMODE_MULTIZONES_SCANNING multiple zone
@@ -101,6 +101,17 @@ enum __stmv53l1_parameter_name_e {
 	VL53L1_TIMINGBUDGET_PAR = 11,
 	/*!< VL53L1_TIMINGBUDGET_PAR
 	 * @ref stmvl53l1_parameter.value field is timing budget in micro second
+	 *
+	 * @note Please refer to VL53L1 user manual for minimum timing budget according to the selected mode
+	 *
+	 * Mode / timing budget                  | Min   | Typical
+	 * ------------------------------------- | ----- | -------
+	 * VL53L1_PRESETMODE_RANGING             |  8 ms | 16 ms
+	 * VL53L1_PRESETMODE_MULTIZONES_SCANNING |  8 ms | 16 ms
+	 * VL53L1_PRESETMODE_AUTONOMOUS          | 41 ms | 76 ms
+	 * VL53L1_PRESETMODE_LITE_RANGING        | 17 ms | 66 ms
+	 * VL53L1_PRESETMODE_LOWPOWER_AUTONOMOUS | 20 ms | 20 ms
+	 *
 	 */
 
 	VL53L1_DISTANCEMODE_PAR = 12,
@@ -223,14 +234,14 @@ enum __stmv53l1_parameter_name_e {
  * parameter structure use in @ref VL53L1_IOCTL_PARAMETER
  */
 struct stmvl53l1_parameter {
-	uint32_t is_read;	/*!< [in]Â 1: Get 0: Set*/
-	/*!< [in]Â parameter to set/get
+	uint32_t is_read;	/*!< [in] 1: Get 0: Set*/
+	/*!< [in] parameter to set/get
 	 * see @ref stmv53l1_parameter_name_e
 	 */
 	stmv53l1_parameter_name_e name;
 	int32_t value;		/*!< [in/out] value to set /get */
 	int32_t value2;		/*!< [in/out] optional 2nd value */
-	int32_t status;		/*!< [out]Â status of the operation */
+	int32_t status;		/*!< [out] status of the operation */
 };
 
 
@@ -295,7 +306,7 @@ struct stmvl53l1_roi_full_t {
  * parameter structure use in @ref VL53L1_IOCTL_CALIBRATION_DATA
  */
 struct stmvl53l1_ioctl_calibration_data_t {
-	int32_t is_read;	/*!< [in]Â 1: Get 0: Set*/
+	int32_t is_read;	/*!< [in] 1: Get 0: Set*/
 	VL53L1_CalibrationData_t data;
 	/*!< [in/out] data to set /get. Caller
 	 * should consider this structure as an opaque one
@@ -317,7 +328,7 @@ struct _stmvl531_zone_calibration_data_t {
  * parameter structure use in @ref VL53L1_IOCTL_ZONE_CALIBRATION_DATA
  */
 struct stmvl53l1_ioctl_zone_calibration_data_t {
-	int32_t is_read;	/*!< [in]Â 1: Get 0: Set*/
+	int32_t is_read;	/*!< [in] 1: Get 0: Set*/
 	stmvl531_zone_calibration_data_t data;
 	/*!< [in/out] data to set /get. Caller
 	 * should consider this structure as an opaque one
@@ -396,7 +407,7 @@ struct stmvl53l1_ioctl_perform_calibration_t {
  */
 struct stmvl53l1_autonomous_config_t {
 	int32_t is_read;
-	/*!< [in]Â 1: Get 0: Set*/
+	/*!< [in] 1: Get 0: Set*/
 	uint32_t pollingTimeInMs;
 	/*!< [in/out] interval between two measure in ms */
 	VL53L1_DetectionConfig_t config;
@@ -519,7 +530,7 @@ int smtvl53l1_stop(int fd){
  * shall only be use while device is stopped (EBUSY error otherwise)
  * setting 0 rois stand for "disable  user define roi usage, use device default"
  *
- * @param roi_cfg [in/out]Â type @ref stmvl53l1_roi_t and
+ * @param roi_cfg [in/out] type @ref stmvl53l1_roi_t and
  * @ref stmvl53l1_roi_full_t
  * @note when getting roi the returned roi cnt is set to available number
  * of roi in driver but  at most requested number or available one

@@ -27,7 +27,7 @@ ccflags-y += -Idrivers/media/platform/msm/camera/cam_req_mgr
 ccflags-y += -Idrivers/media/platform/msm/camera/cam_smmu/
 
 obj-$(CONFIG_INPUT_STMVL53L1)	+= stmvl53l1.o
-stmvl53l1-objs		:= stmvl53l1_module.o stmvl53l1_module-i2c.o stmvl53l1_module-cci.o
+stmvl53l1-objs		:= stmvl53l1_module.o stmvl53l1_module-i2c.o
 stmvl53l1-objs		+= stmvl53l1_i2c.o stmvl53l1_ipp_nl.o stmvl53l1_log.o
 stmvl53l1-objs		+= src/vl53l1_api.o src/vl53l1_api_core.o
 stmvl53l1-objs		+= src/vl53l1_api_strings.o src/vl53l1_error_strings.o

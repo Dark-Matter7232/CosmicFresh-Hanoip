@@ -35,10 +35,6 @@
  */
 #include "stmvl53l1.h"
 #include "stmvl53l1-i2c.h"
-#include "stmvl53l1-cci.h"
-#include "cam_sensor_cmn_header.h"
-#include "cam_sensor_i2c.h"
-#include "cam_cci_dev.h"
 #include <linux/i2c.h>
 
 #if STMVL53L1_LOG_POLL_TIMING
@@ -113,37 +109,8 @@ static uint32_t tv_elapsed_ms(struct timeval *tv)
 }
 
 static int cci_write(struct stmvl53l1_data *dev, int index,
-		uint8_t *data, uint16_t len){
-#ifdef CAMERA_CCI
-	int i = 0, rc = 0;
-	struct cam_sensor_i2c_reg_setting  write_reg_setting;
-	struct cam_sensor_i2c_reg_array    *reg_array  = NULL;
-	struct tof_ctrl_t *tof_ctrl         = NULL;
-
-	tof_ctrl = (struct tof_ctrl_t *)dev->client_object;
-
-	reg_array = kzalloc(sizeof(struct cam_sensor_i2c_reg_array) * len, GFP_KERNEL);
-	if (!reg_array) {
-		vl53l1_errmsg("cci_write malloc failed %d\n");
-	}
-
-	for (i = 0; i < len; i++) {
-		reg_array[i].reg_addr = index + i;
-		reg_array[i].reg_data = data[i];
-	}
-
-	write_reg_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
-	write_reg_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
-	write_reg_setting.size      = len;
-	write_reg_setting.reg_setting = reg_array;
-	write_reg_setting.delay     = 0;
-
-	rc = cam_cci_i2c_write_table(&tof_ctrl->io_master_info, &write_reg_setting);
-
-	kfree(reg_array);
-	return rc;
-
-#else
+		uint8_t *data, uint16_t len)
+{
 	struct i2c_msg msg;
 	struct i2c_data *i2c_client_obj = (struct i2c_data *)dev->client_object;
 	struct i2c_client *client = (struct i2c_client *)i2c_client_obj->client;
@@ -190,22 +157,11 @@ static int cci_write(struct stmvl53l1_data *dev, int index,
 
 	cci_access_over("rd status %d long %d ", rc != 1, len);
 	return rc != 1;
-#endif
 }
 
 static int cci_read(struct stmvl53l1_data *dev, int index,
 		uint8_t *data, uint16_t len)
 {
-#ifdef CAMERA_CCI
-	int rc = 0;
-	struct tof_ctrl_t *tof_ctrl         = NULL;
-
-	tof_ctrl = (struct tof_ctrl_t *)dev->client_object;
-
-	rc = cam_camera_cci_i2c_read_seq(tof_ctrl->io_master_info.cci_client, index, data, CAMERA_SENSOR_I2C_TYPE_WORD,
-				CAMERA_SENSOR_I2C_TYPE_BYTE, len);
-	return rc != 0;
-#else
 	uint8_t buffer[2];
 	struct i2c_msg msg[2];
 	struct i2c_data *i2c_client_obj = (struct i2c_data *)dev->client_object;
@@ -258,7 +214,6 @@ static int cci_read(struct stmvl53l1_data *dev, int index,
 
 	cci_access_over(" wr len %d status %d", rc != 2, len);
 	return rc != 2;
-#endif
 }
 
 VL53L1_Error VL53L1_WrByte(VL53L1_DEV pdev, uint16_t index, uint8_t data)

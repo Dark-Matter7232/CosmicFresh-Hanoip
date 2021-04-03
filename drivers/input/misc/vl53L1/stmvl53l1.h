@@ -39,21 +39,7 @@
 #include <linux/workqueue.h>
 #include <linux/miscdevice.h>
 #include <linux/wait.h>
-#include <linux/i2c.h>
-#include <linux/gpio.h>
-#include <media/v4l2-event.h>
-#include <media/v4l2-subdev.h>
-#include <media/v4l2-ioctl.h>
-#include <media/cam_sensor.h>
-#include <cam_sensor_i2c.h>
-#include <cam_sensor_spi.h>
-#include <cam_sensor_io.h>
-#include <cam_cci_dev.h>
-#include <cam_req_mgr_util.h>
-#include <cam_req_mgr_interface.h>
-#include <cam_mem_mgr.h>
-#include <cam_subdev.h>
-#include "cam_soc_util.h"
+
 #include "vl53l1_api.h"
 
 /**
@@ -90,7 +76,7 @@
  */
 /* define CFG_STMVL53L1_HAVE_REGULATOR */
 
-#define DRIVER_VERSION		"13.0.1"
+#define DRIVER_VERSION		"13.1.0"
 
 /** @ingroup vl53l1_config
  * @{
@@ -141,7 +127,7 @@ extern int stmvl53l1_enable_debug;
 #endif
 
 #define vl53l1_info(str, args...) \
-	pr_info("%s: " str "\n", __func__, ##args)
+	pr_info("%s: " str, __func__, ##args)
 
 #define vl53l1_errmsg(str, args...) \
 	pr_err("%s: " str, __func__, ##args)
@@ -264,6 +250,7 @@ struct stmvl53l1_data {
 	int16_t xtalk_y; /*!< crosstalk compensation y plane gradient kcps */
 	int16_t inner_offset; /*!< inner offset mm */
 	int16_t outer_offset; /*!< outer offset mm */
+	VL53L1_CalibrationData_t *cali_data; /*!< full calibration data */
 
 	/* Range Data and stat */
 	struct range_t {

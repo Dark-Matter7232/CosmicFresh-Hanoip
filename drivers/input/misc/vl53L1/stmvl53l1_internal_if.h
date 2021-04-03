@@ -65,9 +65,9 @@ struct stmvl53l1_register {
 struct stmvl53l1_register_flexi {
 	uint32_t is_read;   /*!< [in] type of the access 1: read 0: write*/
 	uint32_t index;     /*!< [in] register index */
-	uint32_t cnt;       /*!< [Ã®n]Â register size shall be 1 to n */
+	uint32_t cnt;       /*!< [în] register size shall be 1 to n */
 	int32_t status;     /*!< [out] operation status 0 ok else error */
-	uint8_t data[];     /*!< [in/out]Â flexible array size data */
+	uint8_t data[];     /*!< [in/out] flexible array size data */
 	/*!< data only *@warning device is big endian and
 	 * no endianess adaptation is performed by @ref VL53L1_IOCTL_REGISTER
 	 */

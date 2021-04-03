@@ -157,6 +157,12 @@ MODULE_PARM_DESC(intr_gpio_nb, "select gpio numer to use for vl53l1 interrupt");
 #	define modi2c_dbg(...)	(void)0
 #endif
 
+struct vl53l1_pinctrl_info {
+	struct pinctrl *pinctrl;
+	struct pinctrl_state *gpio_state_active;
+	struct pinctrl_state *gpio_state_suspend;
+} g_pinctrl_info;
+
 static int insert_device(void)
 {
 	int ret = 0;
@@ -329,6 +335,35 @@ static void put_intr(struct i2c_data *i2c_data)
 	i2c_data->intr_gpio = -1;
 }
 
+static int get_dt_xtalk_data(struct device_node *of_node,
+		struct stmvl53l1_data *vl53l1_data)
+{
+	int rc = 0;
+	uint32_t x_array[3] = {0};
+
+	if(of_node == NULL || vl53l1_data == NULL)
+		return -EINVAL;
+
+	rc = of_property_read_u32_array(of_node, "st,xtalkval",
+			x_array, 3);
+	if (rc) {
+		vl53l1_errmsg("failed to read xtalk-offset\n");
+		vl53l1_data->xtalk_offset = 0;
+		vl53l1_data->xtalk_x = 0;
+		vl53l1_data->xtalk_y = 0;
+	} else {
+		vl53l1_data->xtalk_offset = (uint16_t)x_array[0] & 0xFFFF;
+		vl53l1_data->xtalk_x = (int16_t)(x_array[1] & 0xFFFF);
+		vl53l1_data->xtalk_y = (int16_t)(x_array[2] & 0xFFFF);
+	}
+
+	vl53l1_info("xtalk info: %u %d %d\n",
+			vl53l1_data->xtalk_offset,
+			vl53l1_data->xtalk_x,
+			vl53l1_data->xtalk_y);
+	return rc;
+}
+
 /**
  *  parse dev tree for all platform specific input
  */
@@ -362,6 +397,19 @@ static int stmvl53l1_parse_tree(struct device *dev, struct i2c_data *i2c_data)
 			"no regulator, nor power gpio => power ctrl disabled");
 			}
 		}
+
+		g_pinctrl_info.pinctrl = devm_pinctrl_get(dev);
+		if (!IS_ERR_OR_NULL(g_pinctrl_info.pinctrl)) {
+			g_pinctrl_info.gpio_state_active =
+				pinctrl_lookup_state(g_pinctrl_info.pinctrl,
+						"laser_default");
+
+			g_pinctrl_info.gpio_state_suspend =
+				pinctrl_lookup_state(g_pinctrl_info.pinctrl,
+						"laser_suspend");
+		} else
+			vl53l1_errmsg("Getting pinctrl handle failed\n");
+
 		rc = of_property_read_u32_array(dev->of_node, "xsdn-gpio",
 			&i2c_data->xsdn_gpio, 1);
 		if (rc) {
@@ -391,6 +439,8 @@ static int stmvl53l1_parse_tree(struct device *dev, struct i2c_data *i2c_data)
 				rc, i2c_data->boot_reg);
 			i2c_data->boot_reg = STMVL53L1_SLAVE_ADDR;
 		}
+
+		get_dt_xtalk_data(dev->of_node, i2c_data->vl53l1_data);
 	}
 
 	/* configure gpios */
@@ -448,13 +498,13 @@ static int stmvl53l1_probe(struct i2c_client *client,
 		rc = -ENOMEM;
 		return rc;
 	}
-	if (vl53l1_data) {
-		vl53l1_data->client_object =
-				kzalloc(sizeof(struct i2c_data), GFP_KERNEL);
-		if (!vl53l1_data)
-			goto done_freemem;
-		i2c_data = (struct i2c_data *)vl53l1_data->client_object;
-	}
+
+	vl53l1_data->client_object =
+			kzalloc(sizeof(struct i2c_data), GFP_KERNEL);
+	if (!vl53l1_data->client_object)
+		goto done_freemem;
+	i2c_data = (struct i2c_data *)vl53l1_data->client_object;
+
 	i2c_data->client = client;
 	i2c_data->vl53l1_data = vl53l1_data;
 	i2c_data->irq = -1 ; /* init to no irq */
@@ -522,7 +572,7 @@ static int stmvl53l1_remove(struct i2c_client *client)
 
 	return 0;
 }
-#if 0
+
 #ifdef CONFIG_PM_SLEEP
 static int stmvl53l1_suspend(struct device *dev)
 {
@@ -562,8 +612,8 @@ static int stmvl53l1_resume(struct device *dev)
 }
 #endif
 
+
 static SIMPLE_DEV_PM_OPS(stmvl53l1_pm_ops, stmvl53l1_suspend, stmvl53l1_resume);
-#endif
 
 static const struct i2c_device_id stmvl53l1_id[] = {
 	{ STMVL53L1_DRV_NAME, 0 },
@@ -581,9 +631,7 @@ static struct i2c_driver stmvl53l1_driver = {
 		.name	= STMVL53L1_DRV_NAME,
 		.owner	= THIS_MODULE,
 		.of_match_table = st_stmvl53l1_dt_match,
-#if 0
 		.pm	= &stmvl53l1_pm_ops,
-#endif
 	},
 	.probe	= stmvl53l1_probe,
 	.remove	= stmvl53l1_remove,
@@ -722,6 +770,8 @@ int stmvl53l1_reset_release_i2c(void *i2c_object)
 	vl53l1_dbgmsg("Enter\n");
 
 	rc = release_reset(data);
+	pinctrl_select_state(g_pinctrl_info.pinctrl,
+		g_pinctrl_info.gpio_state_active);
 	if (rc)
 		goto error;
 
@@ -755,6 +805,9 @@ int stmvl53l1_reset_hold_i2c(void *i2c_object)
 	vl53l1_dbgmsg("Enter\n");
 
 	gpio_set_value(data->xsdn_gpio, 0);
+
+	pinctrl_select_state(g_pinctrl_info.pinctrl,
+		g_pinctrl_info.gpio_state_suspend);
 
 	vl53l1_dbgmsg("End\n");
 

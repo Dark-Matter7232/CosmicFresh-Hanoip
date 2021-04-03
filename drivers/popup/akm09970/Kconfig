@@ -1,0 +1,9 @@
+config POPUP_AKM09970
+	tristate "AKM09970 POPUP"
+	default n
+	help
+	  Say Y here if you have a AKM09970 compatible
+	  device connected.
+
+	  This driver can also be built as a module.  If so, the module
+	  will be called akm09970.

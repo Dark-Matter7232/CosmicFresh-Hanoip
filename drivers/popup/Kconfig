@@ -1,0 +1,3 @@
+source "drivers/popup/akm09970/Kconfig"
+source "drivers/popup/aw8646/Kconfig"
+source "drivers/popup/mxm1120/Kconfig"

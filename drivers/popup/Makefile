@@ -1,0 +1,3 @@
+obj-$(CONFIG_POPUP_AKM09970) 	+= akm09970/
+obj-$(CONFIG_POPUP_AW8646) 	+= aw8646/
+obj-$(CONFIG_POPUP_MXM1120) 	+= mxm1120/

@@ -1,0 +1,1 @@
+obj-$(CONFIG_POPUP_MXM1120) 	+= mxm1120.o

@@ -1,0 +1,1 @@
+obj-$(CONFIG_POPUP_AKM09970) 	+= akm09970.o

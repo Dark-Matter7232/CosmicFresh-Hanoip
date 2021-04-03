@@ -1,0 +1,16 @@
+config POPUP_AW8646
+	tristate "AW8646 POPUP"
+	default n
+	help
+	  Say Y here if you have a AW8646 compatible
+	  device connected.
+
+	  This driver can also be built as a module.  If so, the module
+	  will be called aw8646.
+
+config USE_HW_CLK
+	bool "Use hardware clock for AW8646 POPUP"
+	depends on POPUP_AW8646
+	default n
+	help
+	  Say Y here if you want to use hw clock.

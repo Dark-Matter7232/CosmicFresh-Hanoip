@@ -104,6 +104,7 @@
 	/delete-property/ vddio-supply;
 	qcom,platform-reset-gpio = <&tlmm 91 0>;
 	vddio-supply = <&pm6150_l13>;
+	qcom,platform-mot-ext-feature-enable;
 };
 
 &dsi_nt36675_auo_video {

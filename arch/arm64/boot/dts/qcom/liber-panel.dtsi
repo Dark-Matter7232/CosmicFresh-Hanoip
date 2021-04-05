@@ -90,6 +90,7 @@
 	qcom,platform-reset-gpio = <&pm6150l_gpios 9 0>;
 	//qcom,platform-reset-gpio = <&tlmm 91 0>;
 	vddio-supply = <&pm6150_l15>;
+	qcom,platform-mot-ext-feature-enable;
 };
 
 &dsi_ft8756_focal_1080P_video {

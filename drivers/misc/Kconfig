@@ -611,6 +611,7 @@ source "drivers/misc/fpr_FingerprintCard/Kconfig"
 source "drivers/misc/mods/Kconfig"
 source "drivers/misc/sx933x/Kconfig"
 source "drivers/misc/mmi_sys_temp/Kconfig"
+source "drivers/misc/abov_a96t/Kconfig"
 endmenu
 
 config OKL4_USER_VIPC

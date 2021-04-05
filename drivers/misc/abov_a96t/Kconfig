@@ -1,0 +1,7 @@
+config INPUT_ABOV_A96T
+        tristate "ABOV_A96T_SAR_sensor"
+        depends on I2C
+        default n
+        help
+          Say Y to enable the SAR detection application, if N here not to use the
+          this SAR sensor

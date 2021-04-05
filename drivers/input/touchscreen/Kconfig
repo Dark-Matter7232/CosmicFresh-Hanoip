@@ -1428,6 +1428,8 @@ config TOUCHSCREEN_SYNAPTICS_TCM
 	  If unsure, say N.
 
 source "drivers/input/touchscreen/synaptics_tcm/Kconfig"
+source "drivers/input/touchscreen/focaltech_0flash_mmi/Kconfig"
+
 
 config TOUCHSCREEN_RAYDIUM_CHIPSET
 	bool "Raydium WT030 touchpanel CHIPSET"

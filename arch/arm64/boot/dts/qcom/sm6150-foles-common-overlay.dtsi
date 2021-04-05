@@ -722,6 +722,7 @@
 
 	vddio-supply = <&pm6150_l15>;
 	vdd-supply = <&pm6150_l18>;
+	qcom,platform-mot-ext-feature-enable;
 };
 
 &mdss_dsi_phy0 {

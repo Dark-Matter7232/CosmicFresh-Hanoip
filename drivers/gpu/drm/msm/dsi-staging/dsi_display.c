@@ -6037,9 +6037,6 @@ int dsi_display_dev_probe(struct platform_device *pdev)
 	if (rc)
 		goto end;
 
-	if ( display->is_dsi_mot_ext_enabled && index == DSI_PRIMARY ) {
-		dsi_display_ext_init(display);
-	}
 	pr_info("dsi_display_dev_probe: display(%p), name: %s, is_dsi_mot_ext_enabled=%d\n", display, (display->name==NULL)?"Null":display->name, display->is_dsi_mot_ext_enabled);
 
 	return 0;
@@ -6888,6 +6885,8 @@ int dsi_display_get_modes(struct dsi_display *display,
 				   display->name, mode_idx);
 			goto error;
 		}
+		if (!strcmp(display->dsi_type, "primary") && display->is_dsi_mot_ext_enabled)
+			dsi_display_ext_init(display);
 
 		is_cmd_mode = (display_mode.panel_mode == DSI_OP_CMD_MODE);
 

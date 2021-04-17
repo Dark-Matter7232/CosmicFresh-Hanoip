@@ -17,7 +17,7 @@ bool schedtune_initialized = false;
 extern struct reciprocal_value schedtune_spc_rdiv;
 
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
-#define DYNAMIC_BOOST_SLOTS_COUNT 5
+#define DYNAMIC_BOOST_SLOTS_COUNT 6
 static DEFINE_MUTEX(boost_slot_mutex);
 static DEFINE_MUTEX(stune_boost_mutex);
 static struct schedtune *getSchedtune(char *st_name);
@@ -77,10 +77,11 @@ struct schedtune {
 
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
 	/*
-	 * This tracks the default boost value and is used to restore
-	 * the value when Dynamic SchedTune Boost is reset.
+	 * This tracks the default boost/prefer_high_cap value and is
+	 * used to restore the value when Dynamic SchedTune Boost is reset.
 	 */
 	int boost_default;
+	int prefer_high_cap_default;
 
 	/* Sched Boost value for tasks on that SchedTune CGroup */
 	int sched_boost;
@@ -133,6 +134,7 @@ static struct schedtune root_schedtune = {
 	.prefer_high_cap = false,
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
 	.boost_default = 0,
+	.prefer_high_cap_default = 0,
 	.sched_boost = 0,
 	.boost_count = 0,
 	.active_boost_slots = {
@@ -738,6 +740,10 @@ static int prefer_high_cap_write(struct cgroup_subsys_state *css,
 				 struct cftype *cft, u64 prefer_high_cap)
 {
 	struct schedtune *st = css_st(css);
+
+#ifdef CONFIG_DYNAMIC_STUNE_BOOST
+	st->prefer_high_cap_default = !!prefer_high_cap;
+#endif /* CONFIG_DYNAMIC_STUNE_BOOST */
 	st->prefer_high_cap = !!prefer_high_cap;
 
 	return 0;
@@ -1046,11 +1052,16 @@ static int dynamic_boost(struct schedtune *st, int boost)
 	int ret;
 	/* Backup boost_default */
 	int boost_default_backup = st->boost_default;
+	int phc_default_backup = st->prefer_high_cap_default;
 
 	ret = boost_write(&st->css, NULL, boost);
+	ret = prefer_high_cap_write(&st->css, NULL,
+			boost > 0 && boost != boost_default_backup ?
+			1 : phc_default_backup);
 
 	/* Restore boost_default */
 	st->boost_default = boost_default_backup;
+	st->prefer_high_cap_default = phc_default_backup;
 
 	return ret;
 }

@@ -406,4 +406,26 @@ do {						\
 	*(_fsgid) = __cred->fsgid;		\
 } while(0)
 
+#ifdef CONFIG_FUSE_SHORTCIRCUIT
+extern bool is_fg(int uid);
+static inline int task_is_fg(struct task_struct *task)
+{	int cur_uid;
+	cur_uid = task_uid(task).val;
+	if (is_fg(cur_uid))
+		return 1;
+	return 0;
+}
+
+extern bool is_fg(int uid);
+static inline int current_is_fg(void)
+{
+	int cur_uid;
+
+	cur_uid = current_uid().val;
+	if (is_fg(cur_uid))
+		return 1;
+	return 0;
+}
+#endif /*CONFIG_FUSE_SHORTCIRCUIT*/
+
 #endif /* _LINUX_CRED_H */

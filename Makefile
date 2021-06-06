@@ -721,6 +721,16 @@ else
 KBUILD_CFLAGS   += -O3
 endif
 
+# Tell compiler to tune the performance of the code for a specified
+# target processor
+ifeq ($(cc-name),gcc)
+KBUILD_CFLAGS += -mcpu=cortex-a76.cortex-a55
+KBUILD_AFLAGS += -mcpu=cortex-a76.cortex-a55
+else ifeq ($(cc-name),clang)
+KBUILD_CFLAGS += -mcpu=cortex-a55
+KBUILD_AFLAGS += -mcpu=cortex-a55
+endif
+
 # Tell compiler to use pipes instead of temporary files during compilation
 KBUILD_CFLAGS += $(call cc-option, -pipe)
 

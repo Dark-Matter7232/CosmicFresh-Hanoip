@@ -2977,11 +2977,11 @@ static struct page *rmqueue_pcplist(struct zone *preferred_zone,
 	pcp = &this_cpu_ptr(zone->pageset)->pcp;
 	page = __rmqueue_pcplist(zone,  migratetype, pcp,
 				 gfp_flags);
+	local_irq_restore(flags);
 	if (page) {
 		__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
 		zone_statistics(preferred_zone, zone);
 	}
-	local_irq_restore(flags);
 	return page;
 }
 
@@ -3027,22 +3027,22 @@ struct page *rmqueue(struct zone *preferred_zone,
 			page = __rmqueue(zone, order, migratetype);
 	} while (page && check_new_pages(page, order));
 
-	spin_unlock(&zone->lock);
 	if (!page)
 		goto failed;
+
 	__mod_zone_freepage_state(zone, -(1 << order),
 				  get_pcppage_migratetype(page));
+	spin_unlock_irqrestore(&zone->lock, flags);
 
 	__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
 	zone_statistics(preferred_zone, zone);
-	local_irq_restore(flags);
 
 out:
 	VM_BUG_ON_PAGE(page && bad_range(zone, page), page);
 	return page;
 
 failed:
-	local_irq_restore(flags);
+	spin_unlock_irqrestore(&zone->lock, flags);
 	return NULL;
 }
 

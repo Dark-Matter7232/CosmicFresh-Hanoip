@@ -253,7 +253,7 @@
  * NOTE: if FTS_GET_MODULE_NUM > 1, it's the fw corresponding with FTS_VENDOR_ID
  * NOTE: git may ignore xxx.i file
  */
-#define FTS_UPGRADE_FW_FILE                      "include/firmware/fw_sample.i"
+#define FTS_UPGRADE_FW_FILE                      "include/firmware/focaltech-ft8756-0d-0000-liber.i"
 
 /*
  * if FTS_GET_MODULE_NUM >= 2, fw corrsponding with FTS_VENDOR_ID2

@@ -40,12 +40,13 @@
 *****************************************************************************/
 #define FTS_FW_REQUEST_SUPPORT                      1
 /* Example: focaltech_ts_fw_tianma.bin */
-#define FTS_FW_NAME_PREX_WITH_REQUEST               ""
+#define FTS_FW_NAME_PREX_WITH_REQUEST               "focaltech-ft8756-0d-0000-liber"
 
 /*****************************************************************************
 * Global variable or extern global variabls/functions
 *****************************************************************************/
 u8 fw_file[] = {
+#include FTS_UPGRADE_FW_FILE
 };
 
 u8 fw_file2[] = {

@@ -527,7 +527,7 @@ int schedtune_task_boost(struct task_struct *p)
 	/* Get task boost value */
 	rcu_read_lock();
 	st = task_schedtune(p);
-	task_boost = st->boost;
+	task_boost = max(st->boost, st->boost_override);
 	rcu_read_unlock();
 
 	return task_boost;
@@ -627,7 +627,8 @@ int schedtune_prefer_high_cap(struct task_struct *p)
 	/* Get prefer_high_cap value */
 	rcu_read_lock();
 	st = task_schedtune(p);
-	prefer_high_cap = st->prefer_high_cap;
+	prefer_high_cap = 
+		max(st->prefer_high_cap, st->prefer_high_cap_override);
 	rcu_read_unlock();
 
 	return prefer_high_cap;

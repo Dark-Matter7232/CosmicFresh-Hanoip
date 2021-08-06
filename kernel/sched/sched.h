@@ -3140,9 +3140,11 @@ static inline void walt_map_freq_to_load(void) { }
 static inline void walt_update_min_max_capacity(void) { }
 #endif	/* CONFIG_SCHED_WALT */
 
-static inline bool energy_aware(void)
+extern bool energy_aware(void);
+extern bool pelt_energy_aware;
+static inline void disable_energy_aware(bool disable)
 {
-	return sched_feat(ENERGY_AWARE);
+	pelt_energy_aware = !disable;
 }
 
 struct sched_avg_stats {

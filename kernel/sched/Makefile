@@ -32,3 +32,7 @@ obj-$(CONFIG_CPU_FREQ_GOV_SCHEDUTIL) += cpufreq_schedutil.o
 obj-$(CONFIG_MEMBARRIER) += membarrier.o
 obj-$(CONFIG_SCHED_CORE_CTL) += core_ctl.o
 obj-$(CONFIG_PSI) += psi.o
+
+ifneq ($(CONFIG_SCHED_WALT),y)
+obj-y += boost_pelt.o
+endif

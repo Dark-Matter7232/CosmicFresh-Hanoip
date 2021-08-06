@@ -528,7 +528,7 @@ int schedtune_task_boost(struct task_struct *p)
 	/* Get task boost value */
 	rcu_read_lock();
 	st = task_schedtune(p);
-	task_boost = st->boost;
+	task_boost = max(st->boost, st->boost_override);
 	rcu_read_unlock();
 
 	return task_boost;

@@ -10,6 +10,10 @@ struct schedtune {
 	/* Boost value for tasks on that SchedTune CGroup */
 	int boost;
 
+	/* Overriden boost value with identical functionalities for scheduler
+	 * boosting */
+	int boost_override;
+
 #ifdef CONFIG_SCHED_WALT
 	/* Toggle ability to override sched boost enabled */
 	bool sched_boost_no_override;

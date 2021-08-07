@@ -22,43 +22,6 @@ extern struct reciprocal_value schedtune_spc_rdiv;
  * EAS scheduler tunables for task groups.
  */
 
-/* SchdTune tunables for a group of tasks */
-struct schedtune {
-	/* SchedTune CGroup subsystem */
-	struct cgroup_subsys_state css;
-
-	/* Boost group allocated ID */
-	int idx;
-
-	/* Boost value for tasks on that SchedTune CGroup */
-	int boost;
-
-#ifdef CONFIG_SCHED_WALT
-	/* Toggle ability to override sched boost enabled */
-	bool sched_boost_no_override;
-
-	/*
-	 * Controls whether a cgroup is eligible for sched boost or not. This
-	 * can temporariliy be disabled by the kernel based on the no_override
-	 * flag above.
-	 */
-	bool sched_boost_enabled;
-
-	/*
-	 * Controls whether tasks of this cgroup should be colocated with each
-	 * other and tasks of other cgroups that have the same flag turned on.
-	 */
-	bool colocate;
-
-	/* Controls whether further updates are allowed to the colocate flag */
-	bool colocate_update_disabled;
-#endif /* CONFIG_SCHED_WALT */
-
-	/* Hint to bias scheduling of tasks on that SchedTune CGroup
-	 * towards idle CPUs */
-	int prefer_idle;
-};
-
 static inline struct schedtune *css_st(struct cgroup_subsys_state *css)
 {
 	return css ? container_of(css, struct schedtune, css) : NULL;
@@ -879,6 +842,27 @@ schedtune_init_cgroups(void)
 		BOOSTGROUPS_COUNT);
 
 	schedtune_initialized = true;
+}
+
+struct schedtune *schedtune_get(char *st_name)
+{
+	int idx;
+
+	for (idx = 1; idx < BOOSTGROUPS_COUNT; ++idx) {
+		char name_buf[NAME_MAX + 1];
+		struct schedtune *st = allocated_group[idx];
+
+		if (!st) {
+			pr_warn("SCHEDTUNE: Could not find %s\n", st_name);
+			break;
+		}
+
+		cgroup_name(st->css.cgroup, name_buf, sizeof(name_buf));
+		if (strncmp(name_buf, st_name, strlen(st_name)) == 0)
+			return st;
+	}
+
+	return NULL;
 }
 
 /*

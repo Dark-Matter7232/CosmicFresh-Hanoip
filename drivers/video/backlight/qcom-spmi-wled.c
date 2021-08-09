@@ -2571,7 +2571,7 @@ static int wled_set_brightness_step(struct wled *wled, u16 brightness)
 
 	if ( end_index < start_index) goto exit;
 
-	pr_info(" set_brightness_step : %d -> [%d, %d]-> %d\n",
+	pr_debug(" set_brightness_step : %d -> [%d, %d]-> %d\n",
 		wled->brightness, seq[start_index].level, seq[end_index].level, brightness);
 
 	for (i = start_index; i <= end_index; i++)

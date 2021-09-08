@@ -883,3 +883,4 @@ config OPLUS_MM_HACKS
 	help
 	oplus mm hacks
 
+source "mm/damon/Kconfig"

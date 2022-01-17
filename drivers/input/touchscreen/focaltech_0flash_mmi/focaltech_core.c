@@ -37,6 +37,7 @@
 #include <linux/of_device.h>
 #include <linux/of_gpio.h>
 #include <linux/of_irq.h>
+#include <linux/spi/spi-geni-qcom.h>
 
 #ifdef CONFIG_DRM
 	#include <linux/msm_drm_notify.h>
@@ -825,6 +826,9 @@ static void fts_irq_read_report(void)
     fts_prc_queue_work(ts_data);
 #endif
 
+    pm_qos_update_request(&ts_data->pm_touch_req, 100);
+    pm_qos_update_request(&ts_data->pm_spi_req, 100);
+
     ret = fts_read_parse_touchdata(ts_data);
     if ((ret == 0) && !ts_data->suspended) {
         mutex_lock(&ts_data->report_mutex);
@@ -835,6 +839,9 @@ static void fts_irq_read_report(void)
 #endif
         mutex_unlock(&ts_data->report_mutex);
     }
+
+    pm_qos_update_request(&ts_data->pm_touch_req, PM_QOS_DEFAULT_VALUE);
+    pm_qos_update_request(&ts_data->pm_spi_req, PM_QOS_DEFAULT_VALUE);
 
 #if FTS_ESDCHECK_EN
     fts_esdcheck_set_intr(0);
@@ -2336,6 +2343,16 @@ static int fts_ts_probe(struct spi_device *spi)
         return -ENOMEM;
     }
 
+    ts_data->pm_spi_req.type = PM_QOS_REQ_AFFINE_IRQ;
+    ts_data->pm_spi_req.irq = geni_spi_get_master_irq(spi);
+    pm_qos_add_request(&ts_data->pm_spi_req, PM_QOS_CPU_DMA_LATENCY,
+		    PM_QOS_DEFAULT_VALUE);
+
+    ts_data->pm_touch_req.type = PM_QOS_REQ_AFFINE_IRQ;
+    ts_data->pm_touch_req.irq = spi->irq;
+    pm_qos_add_request(&ts_data->pm_touch_req, PM_QOS_CPU_DMA_LATENCY,
+		    PM_QOS_DEFAULT_VALUE);
+
     fts_data = ts_data;
     ts_data->spi = spi;
     ts_data->dev = &spi->dev;
@@ -2345,6 +2362,8 @@ static int fts_ts_probe(struct spi_device *spi)
     ret = fts_ts_probe_entry(ts_data);
     if (ret) {
         FTS_ERROR("Touch Screen(SPI BUS) driver probe fail");
+        pm_qos_remove_request(&ts_data->pm_touch_req);
+        pm_qos_remove_request(&ts_data->pm_spi_req);
         kfree_safe(ts_data);
         return ret;
     }

@@ -710,6 +710,12 @@ static int prefer_idle_write_wrapper(struct cgroup_subsys_state *css,
 
 	return prefer_idle_write(css, cft, prefer_idle);
 }
+
+static int prefer_high_cap_write_wrapper(struct cgroup_subsys_state *css,
+		                         struct cftype *cft, u64 prefer_high_cap)
+{
+	return 0;
+}
 #endif
 
 static struct cftype files[] = {
@@ -738,7 +744,7 @@ static struct cftype files[] = {
 	{
 		.name = "prefer_high_cap",
 		.read_u64 = prefer_high_cap_read,
-		.write_u64 = prefer_high_cap_write,
+		.write_u64 = prefer_high_cap_write_wrapper,
 	},
 	{} /* terminate */
 };
@@ -768,16 +774,17 @@ struct st_data {
 	char *name;
 	int boost;
 	bool prefer_idle;
+	bool prefer_high_cap;
 };
 
 static void write_default_values(struct cgroup_subsys_state *css)
 {
 	static struct st_data st_targets[] = {
-		{ "audio-app",	0, 0 },
-		{ "background",	0, 0 },
-		{ "foreground",	0, 1 },
-		{ "rt",		0, 0 },
-		{ "top-app",	1, 1 },
+		{ "audio-app",	0, 0, 0 },
+		{ "background",	0, 0, 0 },
+		{ "foreground",	0, 1, 0 },
+		{ "rt",		0, 0, 0 },
+		{ "top-app",	1, 1, 1 },
 	};
 	int i;
 
@@ -787,8 +794,9 @@ static void write_default_values(struct cgroup_subsys_state *css)
 		if (!strcmp(css->cgroup->kn->name, tgt.name)) {
 			boost_write(css, NULL, tgt.boost);
 			prefer_idle_write(css, NULL, tgt.prefer_idle);
-			pr_info("stune_assist: setting values for %s: boost=%d prefer_idle=%d\n",
-				tgt.name, tgt.boost, tgt.prefer_idle);
+			prefer_high_cap_write(css, NULL, tgt.prefer_high_cap);
+			pr_info("stune_assist: setting values for %s: boost=%d prefer_idle=%d\n prefer_high_cap=%d\n",
+				tgt.name, tgt.boost, tgt.prefer_idle, tgt.prefer_high_cap);
 		}
 	}
 }

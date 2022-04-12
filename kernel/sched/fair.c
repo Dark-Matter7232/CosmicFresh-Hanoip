@@ -7389,15 +7389,20 @@ static inline bool task_fits_max(struct task_struct *p, int cpu)
 	if (capacity == max_capacity)
 		return true;
 
-	if ((task_boost_policy(p) == SCHED_BOOST_ON_BIG ||
+	if (is_min_capacity_cpu(cpu)) {
+		if (task_boost_policy(p) == SCHED_BOOST_ON_BIG ||
+			task_boost > 0 ||
 #ifdef CONFIG_SCHED_TUNE
-			schedtune_task_boost(p) > 0) &&
+			schedtune_task_boost(p) > 0 ||
 #elif  CONFIG_UCLAMP_TASK
-			uclamp_boosted(p) > 0) &&
+			uclamp_boosted(p) > 0 ||
 #endif
-			is_min_capacity_cpu(cpu) ||
 			walt_should_kick_upmigrate(p, cpu))
-		return false;
+			return false;
+	} else { /* mid cap cpu */
+		if (task_boost > TASK_BOOST_ON_MID)
+			return false;
+        }
 
 	return task_fits_capacity(p, capacity, cpu);
 }
@@ -8196,9 +8201,9 @@ static int find_energy_efficient_cpu(struct sched_domain *sd,
 	int task_boost = per_task_boost(p);
 #ifdef CONFIG_SCHED_TUNE
 	bool prefer_high_cap = schedtune_prefer_high_cap(p);
-	int boosted = (schedtune_task_boost(p) > 0 || task_boost > 0);
+	int boosted = (schedtune_task_boost(p) > 0) || (task_boost > 0);
 #elif  CONFIG_UCLAMP_TASK
-	int boosted = (uclamp_boosted(p) > 0 || task_boost > 0);
+	int boosted = (uclamp_boosted(p) > 0) || (task_boost > 0);
 #endif
     int start_cpu = get_start_cpu(p);
 

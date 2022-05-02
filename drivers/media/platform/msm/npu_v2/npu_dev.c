@@ -1924,8 +1924,8 @@ static int npu_irq_init(struct npu_device *npu_dev)
 			npu_dev->irq[i].irq);
 		irq_set_status_flags(npu_dev->irq[i].irq,
 						IRQ_NOAUTOEN);
-		ret = devm_request_irq(&npu_dev->pdev->dev,
-				npu_dev->irq[i].irq, npu_dev->irq[i].handler,
+		ret = devm_request_threaded_irq(&npu_dev->pdev->dev,
+				npu_dev->irq[i].irq, NULL, npu_dev->irq[i].handler,
 				irq_type, npu_dev->irq[i].name,
 				npu_dev);
 		if (ret) {

@@ -686,7 +686,7 @@ CONFIG_RANDOMIZE_MODULE_REGION_FULL=y
 #
 # Boot options
 #
-CONFIG_CMDLINE=""
+CONFIG_CMDLINE="androidboot.init_fatal_panic=true androidboot.init_fatal_reboot_target=recovery"
 # CONFIG_EFI is not set
 # CONFIG_BUILD_ARM64_APPENDED_DTB_IMAGE is not set
 CONFIG_BUILD_ARM64_KERNEL_COMPRESSION_GZIP=y

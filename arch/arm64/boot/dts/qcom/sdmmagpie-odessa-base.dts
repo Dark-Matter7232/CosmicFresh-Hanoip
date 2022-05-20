@@ -1,0 +1,80 @@
+/* Copyright (c) 2018, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/dts-v1/;
+
+#include "sdmmagpie-moto-base.dtsi"
+
+/ {
+	model = "odessa";
+};
+
+&firmware {
+	/delete-node/ android;
+};
+
+&spmi_bus {
+/delete-node/ qcom,pm8009@a;
+/delete-node/ qcom,pm8009@b;
+};
+
+&thermal_zones {
+	/delete-node/ rf_pa0_therm-therm;
+	/delete-node/ quiet-therm;
+	/delete-node/ emmc_ufs-therm;
+	/delete-node/ xo-therm-adc;
+	/delete-node/ sdm-therm;
+	/delete-node/ conn-therm;
+	/delete-node/ xo-therm;
+};
+
+
+&pm6150_vadc {
+	/delete-node/ rf_pa0_therm;
+	/delete-node/ rf_pa1_therm;
+};
+&pm6150_adc_tm {
+	/delete-node/ io-channels;
+	/delete-node/ rf_pa0_therm;
+	/delete-node/ rf_pa1_therm;
+};
+
+&pm6150l_vadc {
+	/delete-node/ emmc_ufs_therm;
+	/delete-node/ rf_pa0_therm;
+	/delete-node/ nvm_therm;
+	/delete-node/ conn_therm;
+};
+
+
+&pm6150l_adc_tm {
+	/delete-node/ emmc_ufs_therm;
+	/delete-node/ rf_pa0_therm;
+	/delete-node/ nvm_therm;
+	/delete-node/ conn_therm;
+};
+
+&tlmm {
+	/delete-node/ nfc;
+	/delete-node/ fpc_reset_int;
+};
+
+&reserved_memory {
+	secure_display_memory: secure_display_region {
+		compatible = "shared-dma-pool";
+		alloc-ranges = <0 0x00000000 0 0xffffffff>;
+		reusable;
+		alignment = <0 0x400000>;
+		size = <0 0x6800000>;
+	};
+};
+

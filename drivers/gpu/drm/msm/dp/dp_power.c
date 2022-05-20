@@ -361,7 +361,7 @@ static int dp_power_request_gpios(struct dp_power_private *power)
 	struct device *dev;
 	struct dss_module_power *mp;
 	static const char * const gpio_names[] = {
-		"aux_enable", "aux_sel", "usbplug_cc",
+		"aux_enable", "aux_sel", "usbplug_cc", "mux_sel",
 	};
 
 	if (!power) {
@@ -406,6 +406,8 @@ static void dp_power_set_gpio(struct dp_power_private *power, bool flip)
 	struct dss_module_power *mp = &power->parser->mp[DP_CORE_PM];
 	struct dss_gpio *config = mp->gpio_config;
 
+	pr_debug("%s multi func %d\n", __func__, power->parser->multi_func);
+
 	for (i = 0; i < mp->num_gpio; i++) {
 		if (dp_power_find_gpio(config->gpio_name, "aux-sel"))
 			config->value = flip;
@@ -418,6 +420,9 @@ static void dp_power_set_gpio(struct dp_power_private *power, bool flip)
 			    dp_power_find_gpio(config->gpio_name, "aux-sel"))
 				gpio_direction_output(config->gpio,
 					config->value);
+			else if (dp_power_find_gpio(config->gpio_name, "mux-sel"))
+				gpio_set_value(config->gpio,
+					power->parser->multi_func ?  (!config->value) : config->value);
 			else
 				gpio_set_value(config->gpio, config->value);
 
@@ -450,7 +455,7 @@ static int dp_power_config_gpios(struct dp_power_private *power, bool flip,
 	} else {
 		for (i = 0; i < mp->num_gpio; i++) {
 			if (gpio_is_valid(config[i].gpio)) {
-				gpio_set_value(config[i].gpio, 0);
+				gpio_set_value(config[i].gpio, !config[i].value);
 				gpio_free(config[i].gpio);
 			}
 		}

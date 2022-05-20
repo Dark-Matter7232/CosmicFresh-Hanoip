@@ -25,6 +25,8 @@ struct mipi_dsi_device;
 #define MIPI_DSI_MSG_UNICAST	BIT(2)
 /* Stack all commands until lastcommand bit and trigger all in one go */
 #define MIPI_DSI_MSG_LASTCOMMAND BIT(3)
+/* transmit message is a DSI read message */
+#define MIPI_DSI_MSG_READ	BIT(4)
 
 /**
  * struct mipi_dsi_msg - read/write DSI buffer
@@ -287,6 +289,8 @@ int mipi_dsi_dcs_set_display_brightness(struct mipi_dsi_device *dsi,
 int mipi_dsi_dcs_get_display_brightness(struct mipi_dsi_device *dsi,
 					u16 *brightness);
 
+int mipi_dsi_dcs_set_display_brightness_2bytes(struct mipi_dsi_device *dsi,
+					u16 brightness);
 /**
  * struct mipi_dsi_driver - DSI driver
  * @driver: device driver model driver
@@ -320,6 +324,10 @@ static inline void mipi_dsi_set_drvdata(struct mipi_dsi_device *dsi, void *data)
 int mipi_dsi_driver_register_full(struct mipi_dsi_driver *driver,
 				  struct module *owner);
 void mipi_dsi_driver_unregister(struct mipi_dsi_driver *driver);
+
+int mipi_dsi_dcs_get_elvss_data(struct mipi_dsi_device *dsi);
+int mipi_dsi_dcs_get_elvss_data_1(struct mipi_dsi_device *dsi);
+int mipi_dsi_dcs_set_elvss_dim_off(struct mipi_dsi_device *dsi, u8 val);
 
 #define mipi_dsi_driver_register(driver) \
 	mipi_dsi_driver_register_full(driver, THIS_MODULE)

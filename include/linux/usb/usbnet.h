@@ -43,7 +43,6 @@ struct usbnet {
 	unsigned		in, out;
 	struct usb_host_endpoint *status;
 	unsigned		maxpacket;
-	struct timer_list	delay;
 	const char		*padding_pkt;
 
 	/* protocol/interface state */
@@ -59,12 +58,16 @@ struct usbnet {
 	struct sk_buff_head	rxq;
 	struct sk_buff_head	txq;
 	struct sk_buff_head	done;
+	struct sk_buff_head	rx_done;
+	struct sk_buff_head	rx_queue;
 	struct sk_buff_head	rxq_pause;
 	struct urb		*interrupt;
 	unsigned		interrupt_count;
 	struct mutex		interrupt_mutex;
 	struct usb_anchor	deferred;
-	struct tasklet_struct	bh;
+	struct napi_struct napi;
+	int napi_work_done;
+	int napi_budget;
 
 	struct pcpu_sw_netstats __percpu *stats64;
 
@@ -84,9 +87,17 @@ struct usbnet {
 #		define EVENT_LINK_CHANGE	11
 #		define EVENT_SET_RX_MODE	12
 #		define EVENT_NO_IP_ALIGN	13
-
+#		define USBNET_DISCONNECT	14
+#		define USBNET_LINK		15
 	void			*ipc_log_ctxt;
 	int			netdev_id;
+
+#ifdef CONFIG_DRM_MSM
+	struct notifier_block 	panel_usb_notifier;
+	struct work_struct	panel_update_work;
+	u32			panel_state;
+	int 			last_panel_state;
+#endif
 };
 
 static inline struct usb_driver *driver_of(struct usb_interface *intf)

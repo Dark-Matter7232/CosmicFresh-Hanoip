@@ -1,0 +1,174 @@
+/*
+ * Copyright (c) 2019, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+#include "dsi-panel-mot-tianma-ili7807s-678-1080x2460-video.dtsi"
+
+&pm6150l_wled {
+	qcom,string-cfg= <7>;
+	qcom,leds-per-string = <7>;
+	qcom,ovp = <26500>;
+	qcom,boost-current-limit = <1400>;
+	qcom,wled-bl-step-up;
+	qcom,wled-bl-step-sequence = <255 5>, <2048 6>;
+	status = "ok";
+};
+
+&dsi_panel_pwr_supply {
+	qcom,panel-supply-entry@0 {
+		reg = <0>;
+		qcom,supply-name = "vddio";
+		qcom,supply-min-voltage = <1800000>;
+		qcom,supply-max-voltage = <1904000>;
+		qcom,supply-enable-load = <32000>;
+		qcom,supply-disable-load = <80>;
+	};
+
+	qcom,panel-supply-entry@1 {
+		reg = <1>;
+		qcom,supply-name = "lab";
+		qcom,supply-min-voltage = <5500000>;
+		qcom,supply-max-voltage = <5500000>;
+		qcom,supply-enable-load = <100000>;
+		qcom,supply-disable-load = <100>;
+		qcom,supply-pre-on-sleep = <3>;
+	};
+
+	qcom,panel-supply-entry@2 {
+		reg = <2>;
+		qcom,supply-name = "ibb";
+		qcom,supply-min-voltage = <5500000>;
+		qcom,supply-max-voltage = <5500000>;
+		qcom,supply-enable-load = <100000>;
+		qcom,supply-disable-load = <100>;
+		qcom,supply-pre-off-sleep = <3>;
+		qcom,supply-post-on-sleep = <3>;
+	};
+};
+
+&soc {
+	dsi_mot_dummy_qhd_video_display: qcom,dsi-display@22 {
+		label = "dsi_mot_dummy_qhd_video_display";
+		qcom,display-type = "primary";
+
+		qcom,dsi-ctrl-num = <0>;
+		qcom,dsi-phy-num = <0>;
+		qcom,dsi-select-clocks = "mux_byte_clk0", "mux_pixel_clk0";
+
+		qcom,dsi-panel = <&mot_dummy_vid_qhd>;
+	};
+	dsi_ili7807s_tm_678_vid_display: qcom,dsi-display@23 {
+		label = "dsi_ili7807s_tm_678_vid_display";
+		qcom,display-type = "primary";
+
+		qcom,dsi-ctrl-num = <0>;
+		qcom,dsi-phy-num = <0>;
+		qcom,dsi-select-clocks = "mux_byte_clk0", "mux_pixel_clk0",
+			"src_byte_clk0", "src_pixel_clk0",
+			"shadow_byte_clk0", "shadow_pixel_clk0";
+		lab-supply = <&lcdb_ldo_vreg>;
+		ibb-supply = <&lcdb_ncp_vreg>;
+		qcom,dsi-panel = <&dsi_tm_ili7807s_678_fhd_video>;
+	};
+};
+
+&mdss_mdp {
+       clock-rate = <0 0 0 0 344000000 19200000 200000000 200000000>;
+};
+
+&dsi_ili7807s_tm_678_vid_display {
+	qcom,dsi-display-active;
+};
+
+&sde_dsi {
+	qcom,dsi-display-list = <
+		&dsi_mot_dummy_qhd_video_display
+		&dsi_ili7807s_tm_678_vid_display>;
+        /delete-property/ qcom,platform-te-gpio;
+	/delete-property/ vddio-supply;
+	qcom,platform-reset-gpio = <&pm6150l_gpios 9 0>;
+	//qcom,platform-reset-gpio = <&tlmm 91 0>;
+	vddio-supply = <&pm6150_l13>;
+};
+
+
+&dsi_tm_ili7807s_678_fhd_video {
+	qcom,mdss-dsi-t-clk-post = <0x0C>;
+	qcom,mdss-dsi-t-clk-pre = <0x30>;
+	qcom,esd-check-enabled;
+	qcom,mdss-dsi-panel-status-check-mode = "reg_read";
+	qcom,mdss-dsi-panel-status-command = [06 01 00 01 00 00 01 0A];
+	qcom,mdss-dsi-panel-status-command-state = "dsi_lp_mode";
+	qcom,mdss-dsi-panel-status-value = <0x9c>;
+	qcom,mdss-dsi-panel-on-check-value = <0x9c>;
+	qcom,mdss-dsi-panel-status-read-length = <1>;
+	qcom,mdss-dsi-no-panel-on-read-support;
+	qcom,mdss-dsi-panel-supplier = "tm";
+	//qcom,mdss-dsi-tprst-output-high-resume;
+	qcom,tp_state_check_enable;
+	qcom,platform-reset-gpio-always-on;
+
+	qcom,mdss-dsi-pan-enable-dynamic-fps;
+	qcom,mdss-dsi-pan-fps-update = "dfps_immediate_porch_mode_vfp";
+	qcom,dsi-supported-dfps-list = <60 120>;
+
+	qcom,mdss-dsi-panel-hdr-enabled;
+	qcom,mdss-dsi-panel-hdr-color-primaries = <15115 15895 32830
+				16770 15010 32385 7770 1830>;
+	qcom,mdss-dsi-panel-peak-brightness = <4500000>;
+	qcom,mdss-dsi-panel-blackness-level = <3000>;
+	qcom,mdss-dsi-reset-sequence = <1 4>, <0 1>, <1 12>;
+	qcom,mdss-dsi-display-timings {
+		timing@0{
+			qcom,mdss-dsi-panel-phy-timings =
+				[00 1b 06 06 22 20 07 07 07 02 04 00];
+			qcom,display-topology = <2 2 1>;
+			qcom,default-topology-index = <0>;
+		};
+	};
+};
+
+&dsi_tm_ili7807s_678_fhd_video {
+	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
+	qcom,mdss-dsi-bl-min-level = <27>;
+	qcom,mdss-dsi-bl-max-level = <4095>;
+	qcom,mdss-dsi-bl-default-level = <2047>;
+	qcom,mdss-brightness-max-level = <4095>;
+	qcom,platform-reset-gpio = <&pm6150l_gpios 9 0>;
+	qcom,platform-te-gpio = <&tlmm 10 0>;
+	qcom,platform-en-gpio = <&tlmm 55 0>;
+	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+};
+
+
+&mot_dummy_vid_qhd {
+	qcom,platform-te-gpio = <&tlmm 10 0>;
+	qcom,platform-reset-gpio = <&pm6150l_gpios 9 0>;
+
+	qcom,mdss-dsi-t-clk-post = <0x0e>;
+	qcom,mdss-dsi-t-clk-pre = <0x31>;
+	qcom,mdss-dsi-display-timings {
+		timing@0{
+			qcom,mdss-dsi-panel-phy-timings = [00 2a 0b 0b 28 26 0b
+				0c 08 02 04 00];
+
+			qcom,display-topology = <1 0 1>;
+			qcom,default-topology-index = <0>;
+		};
+	};
+};
+
+&pm6150l_wled {
+	qcom,fs-current-limit = <25000>;
+	qcom,en-cabc;
+	qcom,cabc-sel = <1>;
+};
+

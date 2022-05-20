@@ -3229,8 +3229,10 @@ int usb_port_suspend(struct usb_device *udev, pm_message_t msg)
 	}
 
 	/* see 7.1.7.6 */
-	if (hub_is_superspeed(hub->hdev))
+	if (hub_is_superspeed(hub->hdev)) {
+		dev_err(&udev->dev, "%s: Setting Link to U3\n", __func__);
 		status = hub_set_port_link_state(hub, port1, USB_SS_PORT_LS_U3);
+	}
 
 	/*
 	 * For system suspend, we do not need to enable the suspend feature
@@ -3304,6 +3306,8 @@ static int finish_port_resume(struct usb_device *udev)
 {
 	int	status = 0;
 	u16	devstatus = 0;
+	int	intf_retry = 0;
+	int	dev_retry = 0;
 
 	/* caller owns the udev device lock */
 	dev_dbg(&udev->dev, "%s\n",
@@ -3342,12 +3346,22 @@ static int finish_port_resume(struct usb_device *udev)
 	 * and device drivers will know about any resume quirks.
 	 */
 	if (status == 0) {
+ retry_get_status_dev:
 		devstatus = 0;
 		status = usb_get_status(udev, USB_RECIP_DEVICE, 0, &devstatus);
-
+		if (status) {
+			dev_info(&udev->dev,
+				 "dev disable rem wakeup, stat %d, try %d\n",
+				 status, dev_retry);
+			if (dev_retry < 3) {
+				dev_retry++;
+				mdelay(5);
+				goto retry_get_status_dev;
+			}
+		}
 		/* If a normal resume failed, try doing a reset-resume */
 		if (status && !udev->reset_resume && udev->persist_enabled) {
-			dev_dbg(&udev->dev, "retry with reset-resume\n");
+			dev_err(&udev->dev, "retry with reset-resume\n");
 			udev->reset_resume = 1;
 			goto retry_reset_resume;
 		}
@@ -3367,6 +3381,7 @@ static int finish_port_resume(struct usb_device *udev)
 			if (devstatus & (1 << USB_DEVICE_REMOTE_WAKEUP))
 				status = usb_disable_remote_wakeup(udev);
 		} else {
+ retry_get_status_intf:
 			status = usb_get_status(udev, USB_RECIP_INTERFACE, 0,
 					&devstatus);
 			if (!status && devstatus & (USB_INTRF_STAT_FUNC_RW_CAP
@@ -3374,10 +3389,17 @@ static int finish_port_resume(struct usb_device *udev)
 				status = usb_disable_remote_wakeup(udev);
 		}
 
-		if (status)
-			dev_dbg(&udev->dev,
-				"disable remote wakeup, status %d\n",
-				status);
+		if (status) {
+			dev_info(&udev->dev,
+				 "disable rem wakeup, status %d, try %d\n",
+				 status, intf_retry);
+			if (intf_retry < 3) {
+				intf_retry++;
+				mdelay(5);
+				goto retry_get_status_intf;
+			}
+		}
+
 		status = 0;
 	}
 	return status;
@@ -3411,10 +3433,15 @@ static int wait_for_connected(struct usb_device *udev,
 		struct usb_hub *hub, int *port1,
 		u16 *portchange, u16 *portstatus)
 {
-	int status = 0, delay_ms = 0;
+	int status = 0, delay_ms = 0, i = 0;
 
 	while (delay_ms < 2000) {
-		if (status || *portstatus & USB_PORT_STAT_CONNECTION)
+		pr_err("%s: %d status %d ps 0x%x pc 0x%x\n", __func__, i++,
+		       status, *portstatus, *portchange);
+		if (status)
+			break;
+		if ((*portstatus & USB_PORT_STAT_CONNECTION) &&
+		    !port_is_suspended(hub, *portstatus))
 			break;
 		if (!port_is_power_on(hub, *portstatus)) {
 			status = -ENODEV;
@@ -3469,6 +3496,7 @@ int usb_port_resume(struct usb_device *udev, pm_message_t msg)
 	int		port1 = udev->portnum;
 	int		status;
 	u16		portchange, portstatus;
+	int k = 0;
 
 	if (!test_and_set_bit(port1, hub->child_usage_bits)) {
 		status = pm_runtime_get_sync(&port_dev->dev);
@@ -3483,6 +3511,8 @@ int usb_port_resume(struct usb_device *udev, pm_message_t msg)
 
 	/* Skip the initial Clear-Suspend step for a remote wakeup */
 	status = hub_port_status(hub, port1, &portstatus, &portchange);
+	dev_dbg(&port_dev->dev, "%s: init status %d ps 0x%x pc 0x%x\n",
+		__func__, status,  portstatus, portchange);
 	if (status == 0 && !port_is_suspended(hub, portstatus)) {
 		if (portchange & USB_PORT_STAT_C_SUSPEND)
 			pm_wakeup_event(&udev->dev, 0);
@@ -3490,11 +3520,13 @@ int usb_port_resume(struct usb_device *udev, pm_message_t msg)
 	}
 
 	/* see 7.1.7.7; affects power usage, but not budgeting */
-	if (hub_is_superspeed(hub->hdev))
+	if (hub_is_superspeed(hub->hdev)) {
+		dev_err(&udev->dev, "%s: Setting Link to U0\n", __func__);
 		status = hub_set_port_link_state(hub, port1, USB_SS_PORT_LS_U0);
-	else
+	} else
 		status = usb_clear_port_feature(hub->hdev,
 				port1, USB_PORT_FEAT_SUSPEND);
+
 	if (status) {
 		dev_dbg(&port_dev->dev, "can't resume, status %d\n", status);
 	} else {
@@ -3505,18 +3537,30 @@ int usb_port_resume(struct usb_device *udev, pm_message_t msg)
 				udev->parent != udev->bus->root_hub)
 			usleep_range(USB_RESUME_TIMEOUT * 1000,
 					(USB_RESUME_TIMEOUT + 1) * 1000);
-
+ U_retry:
 		/* Virtual root hubs can trigger on GET_PORT_STATUS to
 		 * stop resume signaling.  Then finish the resume
 		 * sequence.
 		 */
 		status = hub_port_status(hub, port1, &portstatus, &portchange);
-
+		dev_dbg(&udev->dev, "%s: %d status %d ps 0x%x pc 0x%x\n",
+			__func__, k, status, portstatus, portchange);
 		/* TRSMRCY = 10 msec */
 		usleep_range(10000, 10500);
+
+		/* Some Devices Take longer to Wake
+		 * This will spin until a port change
+		 * or 150 ms has passed
+		 */
+		if (!(portchange) && (k < 15)) {
+			k++;
+			goto U_retry;
+		}
 	}
 
  SuspendCleared:
+	dev_dbg(&udev->dev, "%s: goto Suspend Clear status %d\n",
+		__func__, status);
 	if (status == 0) {
 		udev->port_is_suspended = 0;
 		if (hub_is_superspeed(hub->hdev)) {

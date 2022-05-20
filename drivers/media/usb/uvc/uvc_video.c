@@ -41,6 +41,9 @@ static int __uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
 			      : usb_sndctrlpipe(dev->udev, 0);
 	type |= (query & 0x80) ? USB_DIR_IN : USB_DIR_OUT;
 
+	if (dev->quirks & UVC_QUIRK_QUERY_CONTROL_DELAY)
+		msleep(3);
+
 	return usb_control_msg(dev->udev, pipe, query, type, cs << 8,
 			unit << 8 | intfnum, data, size, timeout);
 }
@@ -1885,7 +1888,7 @@ int uvc_video_enable(struct uvc_streaming *stream, int enable)
 		if (stream->intf->num_altsetting > 1) {
 			usb_set_interface(stream->dev->udev,
 					  stream->intfnum, 0);
-		} else {
+		} else if (!(stream->dev->quirks & UVC_QUIRK_NO_CLEAR_HALT)) {
 			/* UVC doesn't specify how to inform a bulk-based device
 			 * when the video stream is stopped. Windows sends a
 			 * CLEAR_FEATURE(HALT) request to the video streaming

@@ -932,6 +932,17 @@ config TOUCHSCREEN_WM97XX_ZYLONITE
 	  To compile this driver as a module, choose M here: the
 	  module will be called zylonite-wm97xx.
 
+config SECURE_TOUCH_SYNAPTICS_DSX
+	bool "Secure Touch"
+	depends on TOUCHSCREEN_SYNAPTICS_DSX_I2C
+	help
+	  Say Y here to enable Secure Touch in supported driver.
+
+	  If unsure, say N.
+
+	  To compile the supported driver with Secure Touch enabled,
+	  choose M here.
+
 config TOUCHSCREEN_USB_COMPOSITE
 	tristate "USB Touchscreen Driver"
 	depends on USB_ARCH_HAS_HCD
@@ -1406,6 +1417,7 @@ config TOUCHSCREEN_SYNAPTICS_DSX
           If unsure, say N.
 
 source "drivers/input/touchscreen/synaptics_dsx/Kconfig"
+source "drivers/input/touchscreen/goodix_gtx8_mmi/Kconfig"
 
 config TOUCHSCREEN_SYNAPTICS_TCM
 	bool "Synaptics TCM Touchscreen Driver"

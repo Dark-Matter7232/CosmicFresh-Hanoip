@@ -22,6 +22,7 @@
 #include "msm_prop.h"
 #include "sde_kms.h"
 #include "sde_fence.h"
+#include "sde_motUtil.h"
 
 #define SDE_CONNECTOR_NAME_SIZE	16
 
@@ -236,6 +237,14 @@ struct sde_connector_ops {
 	void (*post_open)(struct drm_connector *connector, void *display);
 
 	/**
+         * set_tearing - set tearing on/off of connected display panel
+         * @display: Pointer to private display handle
+	 * @enable: tearing on or off
+         * Returns: positive value for success, negetive or zero for failure
+         */
+        int (*set_tearing)(void *display, bool enable);
+
+	/**
 	 * check_status - check status of connected display panel
 	 * @connector: Pointer to drm connector structure
 	 * @display: Pointer to private display handle
@@ -256,6 +265,32 @@ struct sde_connector_ops {
 	int (*cmd_transfer)(struct drm_connector *connector,
 			void *display, const char *cmd_buf,
 			u32 cmd_buf_len);
+
+	/**
+	 * motUtil_transfer - Convert motUtil data and Transfer command
+	 * 			to the connected display panel
+	 * @display: Pointer to private display handle
+	 * @cmd_buf: Command buffer
+	 * @cmd_buf_len: Command buffer length in bytes
+	 * @motUtil_data: motUtil data information
+	 * Returns: Zero for success, negetive for failure
+	 */
+	int (*motUtil_transfer)(void *display, const char *cmd_buf,
+			u32 cmd_buf_len, struct motUtil *motUtil_data);
+
+	/**
+	 * force_esd_disable - force to disable check_status
+	 * @display: Pointer to private display handle
+	 * Returns: true for forcing ESD disable
+	 */
+	bool (*force_esd_disable)(void *display);
+
+	/**
+	 * set_param - set display's feature param setting
+	 * @display: Pointer to private display handle
+	 * Returns: Zero for success, negative for failure
+	 */
+	int (*set_param)(void *display, struct msm_param_info *param_info);
 
 	/**
 	 * config_hdr - configure HDR

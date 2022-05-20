@@ -1,0 +1,154 @@
+/* Copyright (c) 2020, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/arm-gic.h>
+#include <dt-bindings/clock/qcom,camcc-sdmmagpie.h>
+
+#include "sdmmagpie-odessa-common-overlay.dtsi"
+#include "sdmmagpie-odessa-audio-overlay.dtsi"
+
+/ {
+	model = "odessa";
+	qcom,msm-id = <365 0x0>;
+	qcom,board-id = <0x48 0xA100>;
+};
+
+
+
+&pm6150_qg {
+	qcom,vbatt-cutoff-mv = <3200>;
+	qcom,vbatt-empty-mv = <3000>;
+	qcom,vbatt-empty-cold-mv = <3000>;
+};
+
+&dsi_nt36675_auo_video {
+	qcom,mdss-dsi-display-timings {
+		timing@0{
+			qcom,mdss-dsi-on-command =
+			[
+				15 00 00 00 00 00 02 FF 24
+				15 00 00 00 00 00 02 FB 01
+				15 00 00 00 00 00 02 4E 75
+				15 00 00 00 00 00 02 4F 75
+				15 00 00 00 00 00 02 53 75
+				15 00 00 00 00 00 02 7D 05
+				15 00 00 00 00 00 02 80 05
+				15 00 00 00 00 00 02 81 05
+				15 00 00 00 00 00 02 A4 05
+				15 00 00 00 00 00 02 A5 05
+
+				15 00 00 00 00 00 02 FF 26
+				15 00 00 00 00 00 02 FB 01
+				15 00 00 00 00 00 02 01 F8
+				15 00 00 00 00 00 02 04 F8
+				15 00 00 00 00 00 02 06 21
+				15 00 00 00 00 00 02 08 21
+				15 00 00 00 00 00 02 84 04
+				15 00 00 00 00 00 02 86 04
+				15 00 00 00 00 00 02 88 0E
+				15 00 00 00 00 00 02 9B 04
+
+				15 00 00 00 00 00 02 FF 2A
+				15 00 00 00 00 00 02 FB 01
+				15 00 00 00 00 00 02 0C 09
+				15 00 00 00 00 00 02 0F 00
+				15 00 00 00 00 00 02 11 F0
+				15 00 00 00 00 00 02 16 8D
+				15 00 00 00 00 00 02 19 0F
+				15 00 00 00 00 00 02 1A 61
+				15 00 00 00 00 00 02 1E 81
+				15 00 00 00 00 00 02 1F 81
+				15 00 00 00 00 00 02 20 81
+
+				// cabc code
+				15 00 00 00 00 00 02 FF 23
+				15 00 00 00 00 00 02 FB 01
+				15 00 00 00 00 00 02 00 80
+				15 00 00 00 00 00 02 07 00
+				15 00 00 00 00 00 02 08 01
+				15 00 00 00 00 00 02 09 55
+
+				15 00 00 00 00 00 02 10 50
+
+				//resolution 1080*2400
+				15 00 00 00 00 00 02 11 01
+				15 00 00 00 00 00 02 12 95
+				15 00 00 00 00 00 02 15 68
+				15 00 00 00 00 00 02 16 0B
+
+				//firework
+				15 00 00 00 00 00 02 37 EB
+				15 00 00 00 00 00 02 38 E9
+				15 00 00 00 00 00 02 39 E5
+
+				//MOV_PWM DUTY
+				15 00 00 00 00 00 02 58 FF
+				15 00 00 00 00 00 02 59 FB
+				15 00 00 00 00 00 02 5A F6
+				15 00 00 00 00 00 02 5B F1
+				15 00 00 00 00 00 02 5C ED
+				15 00 00 00 00 00 02 5D E0
+				15 00 00 00 00 00 02 5E D6
+				15 00 00 00 00 00 02 5F D0
+				15 00 00 00 00 00 02 60 C5
+				15 00 00 00 00 00 02 61 BC
+				15 00 00 00 00 00 02 62 B2
+				15 00 00 00 00 00 02 63 A9
+				15 00 00 00 00 00 02 64 A2
+				15 00 00 00 00 00 02 65 9D
+				15 00 00 00 00 00 02 66 9B
+				15 00 00 00 00 00 02 67 96
+
+				15 00 00 00 00 00 02 A0 11
+				15 00 00 00 00 00 02 0A 00
+				15 00 00 00 00 00 02 0B 00
+				15 00 00 00 00 00 02 0C 00
+				15 00 00 00 00 00 02 0D 00
+
+				15 00 00 00 00 00 02 FF 10
+				15 00 00 00 00 00 02 FB 01
+				39 00 00 00 00 00 03 68 02 01
+				39 00 00 00 00 00 03 51 0C CC
+				15 00 00 00 00 00 02 53 2C
+				15 00 00 00 00 00 02 55 01
+				05 01 00 00 46 00 01 11
+				05 01 00 00 28 00 01 29
+			];
+		};
+	};
+};
+
+&dsi_ft8756_txd_video {
+	qcom,mdss-dsi-display-timings {
+		timing@0{
+			qcom,mdss-dsi-on-command =
+			[
+				15 00 00 00 00 00 02 00 00
+				29 00 00 00 00 00 04 FF 87 56 01
+				15 00 00 00 00 00 02 00 80
+				29 00 00 00 00 00 03 FF 87 56
+				15 00 00 00 00 00 02 00 80
+				29 00 00 00 00 00 0D CA CE BB AB 9F 96 8E 87 82 80 80 80 80
+				15 00 00 00 00 00 02 00 90
+				29 00 00 00 00 00 0A CA FD FF EA FC FF CC FA FF 66
+				05 01 00 00 64 00 01 11
+				05 01 00 00 0A 00 01 29
+				15 00 00 00 00 00 02 51 CC
+				15 00 00 00 00 00 02 53 2C
+				15 01 00 00 00 00 02 55 01
+			];
+		};
+	};
+};

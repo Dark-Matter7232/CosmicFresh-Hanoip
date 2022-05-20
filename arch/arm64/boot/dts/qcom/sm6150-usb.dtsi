@@ -45,7 +45,7 @@
 		resets = <&clock_gcc GCC_USB30_PRIM_BCR>;
 		reset-names = "core_reset";
 
-		qcom,core-clk-rate = <200000000>;
+		qcom,core-clk-rate = <240000000>;
 		qcom,core-clk-rate-hs = <66666667>;
 		qcom,num-gsi-evt-buffs = <0x3>;
 		qcom,gsi-reg-offset =
@@ -102,6 +102,7 @@
 			usb-core-id = <0>;
 			maximum-speed = "super-speed";
 			dr_mode = "otg";
+			xhci-imod-value = <4000>;
 		};
 
 		qcom,usbbam@a704000 {
@@ -152,10 +153,10 @@
 		qcom,vdd-voltage-level = <0 925000 975000>;
 		qcom,tune2-efuse-bit-pos = <25>;
 		qcom,tune2-efuse-num-bits = <4>;
-		qcom,qusb-phy-init-seq = <0xc8 0x80
-					0xb3 0x84
-					0x83 0x88
-					0xc0 0x8c
+		qcom,qusb-phy-init-seq = <0xf8 0x80
+					0x93 0x84
+					0x81 0x88
+					0xcf 0x8c
 					0x30 0x08
 					0x79 0x0c
 					0x21 0x10
@@ -294,6 +295,7 @@
 				 0xc78 0x40 0x00
 				 0xc7c 0x00 0x00
 				 0xdd8 0x88 0x00
+				 0x61c 0x23 0x00
 				 0xffffffff 0xffffffff 0x00>;
 
 		qcom,qmp-phy-reg-offset =

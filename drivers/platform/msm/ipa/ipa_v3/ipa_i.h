@@ -2088,6 +2088,7 @@ struct ipa3_context {
 	struct ipa3_eth_info
 		eth_info[IPA_ETH_CLIENT_MAX][IPA_ETH_INST_ID_MAX];
 	bool ipa_in_cpe_cfg;
+	struct ipa_mem_buffer uc_dma_addr;
 };
 
 struct ipa3_plat_drv_res {

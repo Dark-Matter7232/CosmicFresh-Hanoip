@@ -897,11 +897,19 @@ static int spi_geni_prepare_transfer_hardware(struct spi_master *spi)
 		int ret = 0;
 
 		rsc = &mas->spi_rsc;
-		ret = pinctrl_select_state(rsc->geni_pinctrl,
-						rsc->geni_gpio_active);
-		if (ret)
-			GENI_SE_ERR(mas->ipc, false, NULL,
-			"%s: Error %d pinctrl_select_state\n", __func__, ret);
+		if (!rsc->without_pinctrl) {
+			ret = pinctrl_select_state(rsc->geni_pinctrl,
+							rsc->geni_gpio_active);
+			if (ret)
+				GENI_SE_ERR(mas->ipc, false, NULL,
+				"%s: Error %d pinctrl_select_state\n", __func__, ret);
+		}
+	}
+
+	if (mas->dev->power.disable_depth > 0) {
+		dev_err(mas->dev, "%s:disable_depth not zero %d\n",
+					__func__, mas->dev->power.disable_depth);
+		pm_runtime_enable(mas->dev);
 	}
 
 	ret = pm_runtime_get_sync(mas->dev);
@@ -1111,11 +1119,13 @@ static int spi_geni_unprepare_transfer_hardware(struct spi_master *spi)
 		int ret = 0;
 
 		rsc = &mas->spi_rsc;
-		ret = pinctrl_select_state(rsc->geni_pinctrl,
-						rsc->geni_gpio_sleep);
-		if (ret)
-			GENI_SE_ERR(mas->ipc, false, NULL,
-			"%s: Error %d pinctrl_select_state\n", __func__, ret);
+		if (!rsc->without_pinctrl) {
+			ret = pinctrl_select_state(rsc->geni_pinctrl,
+							rsc->geni_gpio_sleep);
+			if (ret)
+				GENI_SE_ERR(mas->ipc, false, NULL,
+				"%s: Error %d pinctrl_select_state\n", __func__, ret);
+		}
 	}
 
 	if (mas->dis_autosuspend) {
@@ -1723,28 +1733,42 @@ static int spi_geni_probe(struct platform_device *pdev)
 		goto spi_geni_probe_err;
 	}
 
-	geni_mas->spi_rsc.ctrl_dev = geni_mas->dev;
-	rsc->geni_pinctrl = devm_pinctrl_get(&pdev->dev);
-	if (IS_ERR_OR_NULL(rsc->geni_pinctrl)) {
-		dev_err(&pdev->dev, "No pinctrl config specified!\n");
-		ret = PTR_ERR(rsc->geni_pinctrl);
-		goto spi_geni_probe_err;
+        geni_mas->spi_rsc.ctrl_dev = geni_mas->dev;
+	
+	rsc->without_pinctrl = of_property_read_bool(pdev->dev.of_node,
+					"mmi,without-pinctrl");
+	if (rsc->without_pinctrl) {
+		dev_err(&pdev->dev, "%s without pinctrl\n", __func__);
+		rsc->geni_pinctrl = NULL;
+		rsc->geni_gpio_active = NULL;
+		rsc->geni_gpio_sleep = NULL;
+	} else {
+		dev_err(&pdev->dev, "%s with pinctrl\n", __func__);
 	}
 
-	rsc->geni_gpio_active = pinctrl_lookup_state(rsc->geni_pinctrl,
-							PINCTRL_DEFAULT);
-	if (IS_ERR_OR_NULL(rsc->geni_gpio_active)) {
-		dev_err(&pdev->dev, "No default config specified!\n");
-		ret = PTR_ERR(rsc->geni_gpio_active);
-		goto spi_geni_probe_err;
-	}
+	if (!rsc->without_pinctrl) {
+		rsc->geni_pinctrl = devm_pinctrl_get(&pdev->dev);
+		if (IS_ERR_OR_NULL(rsc->geni_pinctrl)) {
+			dev_err(&pdev->dev, "No pinctrl config specified!\n");
+			ret = PTR_ERR(rsc->geni_pinctrl);
+			goto spi_geni_probe_err;
+		}
 
-	rsc->geni_gpio_sleep = pinctrl_lookup_state(rsc->geni_pinctrl,
-							PINCTRL_SLEEP);
-	if (IS_ERR_OR_NULL(rsc->geni_gpio_sleep)) {
-		dev_err(&pdev->dev, "No sleep config specified!\n");
-		ret = PTR_ERR(rsc->geni_gpio_sleep);
-		goto spi_geni_probe_err;
+		rsc->geni_gpio_active = pinctrl_lookup_state(rsc->geni_pinctrl,
+								PINCTRL_DEFAULT);
+		if (IS_ERR_OR_NULL(rsc->geni_gpio_active)) {
+			dev_err(&pdev->dev, "No default config specified!\n");
+			ret = PTR_ERR(rsc->geni_gpio_active);
+			goto spi_geni_probe_err;
+		}
+
+		rsc->geni_gpio_sleep = pinctrl_lookup_state(rsc->geni_pinctrl,
+								PINCTRL_SLEEP);
+		if (IS_ERR_OR_NULL(rsc->geni_gpio_sleep)) {
+			dev_err(&pdev->dev, "No sleep config specified!\n");
+			ret = PTR_ERR(rsc->geni_gpio_sleep);
+			goto spi_geni_probe_err;
+		}
 	}
 
 	geni_mas->disable_dma_mode = of_property_read_bool(pdev->dev.of_node,
@@ -1961,7 +1985,7 @@ static int spi_geni_resume(struct device *dev)
 static int spi_geni_suspend(struct device *dev)
 {
 	int ret = 0;
-
+#if 0
 	if (!pm_runtime_status_suspended(dev)) {
 		struct spi_master *spi = get_spi_master(dev);
 		struct spi_geni_master *geni_mas = spi_master_get_devdata(spi);
@@ -1982,6 +2006,10 @@ static int spi_geni_suspend(struct device *dev)
 			ret = -EBUSY;
 		}
 	}
+#else
+	if (!pm_runtime_status_suspended(dev))
+		ret = -EBUSY;
+#endif
 	return ret;
 }
 #else

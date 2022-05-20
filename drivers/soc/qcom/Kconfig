@@ -2,6 +2,102 @@
 # QCOM Soc drivers
 #
 menu "Qualcomm SoC drivers"
+config MMI_DEVICE_DTBS
+	depends on ARCH_QCOM
+	default n
+	bool "Motorola Mobility Device DTBs"
+	help
+		Only include Motorola device specific DTBs to limit the number that
+		get built during kernel compilation.
+
+config FOLES_DTB
+	depends on ARCH_QCOM
+	default n
+	bool "Foles DTBs"
+	help
+	  Only include Foles specific DTBs to limit the number that
+	  get built during kernel compilation.
+
+config PARKER_DTB
+	depends on ARCH_QCOM
+	default n
+	bool "Parker DTBs"
+	help
+	  Only include Parker specific DTBs to limit the number that
+	  get built during kernel compilation.
+
+config DEF_DTB
+	depends on ARCH_QCOM
+	default n
+	bool "Def DTBs"
+	help
+	  Only include Def specific DTBs to limit the number that
+	  get built during kernel compilation.
+
+config LIBER_DTB
+	depends on ARCH_QCOM
+	default n
+	bool "Liber DTBs"
+	help
+	  Only include liber specific DTBs to limit the number that
+	  get built during kernel compilation.
+
+config HANOI_DTB
+	depends on ARCH_QCOM
+	default n
+	bool "Hanoi DTBs"
+	help
+	  Only include hanoi specific DTBs to limit the number that
+	  get built during kernel compilation.
+
+config HANOIP_DTB
+	depends on ARCH_QCOM
+	default n
+	bool "Hanoi plus DTBs"
+	help
+	  Only include hanoip specific DTBs to limit the number that
+	  get built during kernel compilation.
+
+config TACOMA_DTB
+	depends on ARCH_QCOM
+	default n
+	bool "Tacoma DTBs"
+	help
+	  Only include Tacoma specific DTBs to limit the number that
+	  get built during kernel compilation.
+
+config ODESSA_DTB
+	depends on ARCH_QCOM
+	default n
+	bool "Odessa DTBs"
+	help
+	  Only include odessa specific DTBs to limit the number that
+	  get built during kernel compilation.
+
+config BORNR_DTB
+	depends on ARCH_QCOM
+	default n
+	bool "Borneo Row DTBs"
+	help
+	  Only include Borneo Row specific DTBs to limit the number that
+	  get built during kernel compilation.
+
+config MINSK_DTB
+	depends on ARCH_QCOM
+	default n
+	bool "Minsk DTBs"
+	help
+	  Only include Minsk specific DTBs to limit the number that
+	  get built during kernel compilation.
+
+config QTPRO_DTB
+	depends on ARCH_QCOM
+	default n
+	bool "Qtpro DTBs"
+	help
+	  Only include Qtpro specific DTBs to limit the number that
+	  get built during kernel compilation.
+
 config QCOM_MEM_OFFLINE
 	bool "Dynamic Memory Region Offline driver"
 	help

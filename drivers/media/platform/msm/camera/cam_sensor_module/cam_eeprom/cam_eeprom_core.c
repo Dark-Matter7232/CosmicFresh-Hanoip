@@ -438,32 +438,17 @@ static int32_t cam_eeprom_parse_memory_map(
 	else if (cmm_hdr->cmd_type == CAMERA_SENSOR_CMD_TYPE_WAIT)
 		validate_size = sizeof(struct cam_cmd_unconditional_wait);
 
-	if (remain_buf_len < validate_size ||
-	    *num_map >= (MSM_EEPROM_MAX_MEM_MAP_CNT *
-		MSM_EEPROM_MEMORY_MAP_MAX_SIZE)) {
+	if (remain_buf_len < validate_size) {
 		CAM_ERR(CAM_EEPROM, "not enough buffer");
 		return -EINVAL;
 	}
 	switch (cmm_hdr->cmd_type) {
 	case CAMERA_SENSOR_CMD_TYPE_I2C_RNDM_WR:
 		i2c_random_wr = (struct cam_cmd_i2c_random_wr *)cmd_buf;
-
-		if (i2c_random_wr->header.count == 0 ||
-		    i2c_random_wr->header.count >= MSM_EEPROM_MAX_MEM_MAP_CNT ||
-		    (size_t)*num_map >= ((MSM_EEPROM_MAX_MEM_MAP_CNT *
-				MSM_EEPROM_MEMORY_MAP_MAX_SIZE) -
-				i2c_random_wr->header.count)) {
-			CAM_ERR(CAM_EEPROM, "OOB Error");
-			return -EINVAL;
-		}
 		cmd_length_in_bytes   = sizeof(struct cam_cmd_i2c_random_wr) +
 			((i2c_random_wr->header.count - 1) *
 			sizeof(struct i2c_random_wr_payload));
 
-		if (cmd_length_in_bytes > remain_buf_len) {
-			CAM_ERR(CAM_EEPROM, "Not enough buffer remaining");
-			return -EINVAL;
-		}
 		for (cnt = 0; cnt < (i2c_random_wr->header.count);
 			cnt++) {
 			map[*num_map + cnt].page.addr =
@@ -486,11 +471,6 @@ static int32_t cam_eeprom_parse_memory_map(
 		i2c_cont_rd = (struct cam_cmd_i2c_continuous_rd *)cmd_buf;
 		cmd_length_in_bytes = sizeof(struct cam_cmd_i2c_continuous_rd);
 
-		if (i2c_cont_rd->header.count >= U32_MAX - data->num_data) {
-			CAM_ERR(CAM_EEPROM,
-				"int overflow on eeprom memory block");
-			return -EINVAL;
-		}
 		map[*num_map].mem.addr = i2c_cont_rd->reg_addr;
 		map[*num_map].mem.addr_type = i2c_cont_rd->header.addr_type;
 		map[*num_map].mem.data_type = i2c_cont_rd->header.data_type;
@@ -925,6 +905,17 @@ power_down:
 memdata_free:
 	vfree(e_ctrl->cal_data.mapdata);
 error:
+	/*Try to release the device handle when EEPROM read failed*/
+	if (e_ctrl->cam_eeprom_state >= CAM_EEPROM_ACQUIRE) {
+		int ret = 0;
+		ret = cam_destroy_device_hdl(e_ctrl->bridge_intf.device_hdl);
+		if (ret < 0)
+			CAM_ERR(CAM_EEPROM, "destroying the device hdl");
+
+		e_ctrl->bridge_intf.device_hdl = -1;
+		e_ctrl->bridge_intf.link_hdl = -1;
+		e_ctrl->bridge_intf.session_hdl = -1;
+	}
 	kfree(power_info->power_setting);
 	kfree(power_info->power_down_setting);
 	power_info->power_setting = NULL;

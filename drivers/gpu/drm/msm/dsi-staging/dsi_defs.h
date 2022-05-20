@@ -282,6 +282,16 @@ enum dsi_dyn_clk_feature_type {
  * @DSI_CMD_SET_POST_TIMING_SWITCH:        Post timing switch
  * @DSI_CMD_SET_QSYNC_ON                   Enable qsync mode
  * @DSI_CMD_SET_QSYNC_OFF                  Disable qsync mode
+ * @DSI_CMD_SET_HBM_FOD_ON:                Turning HBM_FOD on
+ * @DSI_CMD_SET_HBM_ON:                    Turning HBM on
+ * @DSI_CMD_SET_HBM_OFF:                   Turning HBM off
+ * @DSI_CMD_SET_ACL_ON:                    Turning ACL on
+ * @DSI_CMD_SET_ACL_OFF:                   Turning ACL off
+ * @DSI_CMD_SET_HBM_DIM_OFF:		   Turning HBM DIM off
+ * @DSI_CMD_SET_CABC_UI:			CABC UI mode
+ * @DSI_CMD_SET_CABC_MV:			CABC MV mode
+ * @DSI_CMD_SET_CABC_DIS:		CABC DIS mode
+ * @DSI_CMD_SET_DISPLAY_OFF:               Panel display off only, for touch tddi touch gesture
  * @DSI_CMD_SET_MAX
  */
 enum dsi_cmd_set_type {
@@ -308,6 +318,16 @@ enum dsi_cmd_set_type {
 	DSI_CMD_SET_POST_TIMING_SWITCH,
 	DSI_CMD_SET_QSYNC_ON,
 	DSI_CMD_SET_QSYNC_OFF,
+	DSI_CMD_SET_HBM_FOD_ON,
+	DSI_CMD_SET_HBM_ON,
+	DSI_CMD_SET_HBM_OFF,
+	DSI_CMD_SET_ACL_ON,
+	DSI_CMD_SET_ACL_OFF,
+	DSI_CMD_SET_HBM_DIM_OFF,
+	DSI_CMD_SET_CABC_UI,
+	DSI_CMD_SET_CABC_MV,
+	DSI_CMD_SET_CABC_DIS,
+	DSI_CMD_SET_DISPLAY_OFF,
 	DSI_CMD_SET_MAX
 };
 

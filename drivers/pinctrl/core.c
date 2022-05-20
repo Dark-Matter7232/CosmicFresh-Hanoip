@@ -1270,6 +1270,11 @@ unapply_new_state:
  */
 int pinctrl_select_state(struct pinctrl *p, struct pinctrl_state *state)
 {
+	if ((!p) || (!state)) {
+		pr_info("%s pinctrl or state null, escape!\n", __func__);
+		return 0;
+	}
+
 	if (p->state == state)
 		return 0;
 
@@ -1416,6 +1421,7 @@ int pinctrl_register_mappings(const struct pinctrl_map *maps,
 {
 	return pinctrl_register_map(maps, num_maps, true);
 }
+EXPORT_SYMBOL_GPL(pinctrl_register_mappings);
 
 void pinctrl_unregister_map(const struct pinctrl_map *map)
 {

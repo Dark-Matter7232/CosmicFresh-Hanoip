@@ -127,6 +127,13 @@ static const struct of_device_id dp_dt_match[] = {
 	{}
 };
 
+#ifdef CONFIG_MOD_DISPLAY
+unsigned char dp_dpcd_debug_buf[8] = {0};
+int dp_fix_lane_num = true;
+int dp_fix_linkrate = 1;
+int dp_enhance_en = 1;
+#endif
+
 static void dp_display_update_hdcp_info(struct dp_display_private *dp);
 static bool dp_display_framework_ready(struct dp_display_private *dp)
 {
@@ -783,11 +790,15 @@ static void dp_display_host_init(struct dp_display_private *dp)
 	if (dp->core_initialized)
 		return;
 
-	if (dp->hpd->orientation == ORIENTATION_CC2)
+	if (dp->parser->without_sw_flip)
+		pr_info("%s do not flip for SW\n", __func__);
+	else if (dp->hpd->orientation == ORIENTATION_CC2)
 		flip = true;
 
 	reset = dp->debug->sim_mode ? false :
 		(!dp->hpd->multi_func || !dp->hpd->peer_usb_comm);
+
+	dp->parser->multi_func = dp->hpd->multi_func;
 
 	dp->power->init(dp->power, flip);
 	dp->hpd->host_init(dp->hpd, &dp->catalog->hpd);
@@ -2781,6 +2792,367 @@ static int dp_display_mst_get_fixed_topology_display_type(
 	return 0;
 }
 
+#ifdef CONFIG_MOD_DISPLAY
+/*============= For amps factory test =============*/
+static ssize_t video_status_show(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	struct dp_display_private *dp;
+	struct platform_device *pdev = to_platform_device(dev);
+	unsigned char video_state = 0;
+
+	dp = platform_get_drvdata(pdev);
+
+	drm_dp_dpcd_read(dp->aux->drm_aux, DP_SINK_STATUS, &video_state, 1);
+
+	return scnprintf(buf, PAGE_SIZE, "%s(0x%x)\n",
+				(video_state & BIT(0)) ? "true" : "false", video_state);
+}
+
+static ssize_t video_status_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	pr_info("%s not suport store\n", __func__);
+
+	return count;
+}
+
+static DEVICE_ATTR_RW(video_status);
+
+static ssize_t link_status_show(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	struct dp_display_private *dp;
+	struct platform_device *pdev = to_platform_device(dev);
+	int link;
+
+	dp = platform_get_drvdata(pdev);
+
+	link = dp->catalog->ctrl.mainlink_ready(&dp->catalog->ctrl);
+
+	//for amps test in tc_cmn_drv_amps_get_mydp_link_status()
+	//it will check the value of link. For the common code logic,
+	//when result > 5, link is ready, and <= 5 for not ready.
+	return scnprintf(buf, PAGE_SIZE, "%d\n",
+				link ? 5 + link : 0);
+}
+
+static ssize_t link_status_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	pr_info("%s not suport store\n", __func__);
+
+	return count;
+}
+
+static DEVICE_ATTR_RW(link_status);
+/*============= For amps factory test end =============*/
+
+static bool dp_get_sink_addr(int dev_id, unsigned char *addr)
+{
+	switch (dev_id) {
+		case 0x50:
+			*addr = 0;
+			break;
+		case 0x8c:
+			*addr = 0x01;
+			break;
+		case 0x58:
+			*addr = 0x02;
+			break;
+		case 0x5c:
+			*addr = 0x03;
+			break;
+		case 0x82:
+			*addr = 0x05;
+			break;
+		case 0x84:
+			*addr = 0x06;
+			break;
+		case 0x86:
+			*addr = 0x07;
+			break;
+		case 0x72:
+			*addr = 0x09;
+			break;
+		case 0x7a:
+			*addr = 0x0a;
+			break;
+		case 0x70:
+			*addr = 0x0b;
+			break;
+		case 0x60:
+			*addr = 0x0c;
+			break;
+		case 0x62:
+			*addr = 0x0d;
+			break;
+		case 0x64:
+			*addr = 0x0e;
+			break;
+		default:
+			pr_err("%s unsupported devid 0x%x\n", __func__, dev_id);
+			return -1;
+	}
+
+	return 0;
+}
+
+static bool dp_sink_reg_write(void *input, int dev_id, int reg,
+							unsigned char data, unsigned char mask)
+{
+	struct drm_dp_aux *drm_aux = input;
+	int ret;
+	unsigned char buf[8] = {0};
+
+	if (dp_get_sink_addr(dev_id, &buf[0])) {
+		pr_err("%s get devid fail 0x%x\n", dev_id);
+		return -1;
+	}
+
+	buf[1] = reg;
+
+	drm_dp_dpcd_write(drm_aux, 0x5f0, buf, 2);
+	drm_dp_dpcd_read(drm_aux, 0x5f2, &ret, 1);
+
+	buf[2] = (ret & ~mask) | data;
+	pr_info("%s write dev 0x%x addr 0x%x val 0x%x\n",  __func__, buf[0], buf[1], ret);
+
+	drm_dp_dpcd_write(drm_aux, 0x5f0, buf, 3);
+
+	//check
+	if (1) {
+		drm_dp_dpcd_write(drm_aux, 0x5f0, buf, 2);
+		drm_dp_dpcd_read(drm_aux, 0x5f2, &ret, 1);
+		pr_info("ww_debug dev 0x%x addr 0x%x val 0x%x\n",  buf[0], buf[1], ret);
+	}
+
+	return 0;
+}
+
+static bool dp_sink_reg_read(void *input, int dev_id, int reg,
+							unsigned char *data)
+{
+	struct drm_dp_aux *drm_aux = input;
+	unsigned char buf[256] = {0};
+
+	if (dp_get_sink_addr(dev_id, &buf[0])) {
+		return -1;
+	}
+
+	buf[1] = reg;
+
+	drm_dp_dpcd_write(drm_aux, 0x5f0, buf, 2);
+	drm_dp_dpcd_read(drm_aux, 0x5f2, data, 1);
+
+	return 0;
+}
+
+static ssize_t dp_sink_rw_show(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	struct dp_display_private *dp;
+	struct platform_device *pdev = to_platform_device(dev);
+	char data;
+	unsigned char addr, reg;
+	int ret;
+
+	if (!dev || !pdev) {
+		pr_err("%s invalid param(s), dev %pK, pdev %pK\n",
+				__func__, dev, pdev);
+		return 0;
+	}
+
+	addr = dp_dpcd_debug_buf[0];
+	reg = dp_dpcd_debug_buf[1];
+
+	dp = platform_get_drvdata(pdev);
+
+	/*data[] : addr | reg*/
+	dp_sink_reg_read(dp->aux->drm_aux, addr, reg, &data);
+
+	ret = scnprintf(buf, PAGE_SIZE, "read addr 0x%x reg 0x%x val 0x%x\n",
+			addr, reg, data);
+
+	return ret;
+}
+
+static ssize_t dp_sink_rw_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct dp_display_private *dp;
+	struct platform_device *pdev = to_platform_device(dev);
+	int cnt = 0;
+	char* str;
+	int ret = 0;
+
+	if (!dev || !pdev) {
+		pr_err("%s invalid param(s), dev %pK, pdev %pK\n",
+				__func__, dev, pdev);
+		return 0;
+	}
+
+	dp = platform_get_drvdata(pdev);
+
+	while(cnt < sizeof(dp_dpcd_debug_buf)) {
+		str = strsep((char**)&buf, " ");
+		if (str == NULL)
+			break;
+
+		kstrtou8(str, 16, &dp_dpcd_debug_buf[cnt]);
+
+		cnt++;
+	}
+
+	/*data[] : addr | reg | [val](option, only wr needed)*/
+	if (cnt == 3) {
+		ret = dp_sink_reg_write(dp->aux->drm_aux, dp_dpcd_debug_buf[0],
+					dp_dpcd_debug_buf[1], dp_dpcd_debug_buf[2], 0xff);
+		if (ret)
+			pr_err("%s write failed %d\n", __func__, ret);
+	} else {
+		pr_err("%s data len %d, do not need writing sink\n", __func__, cnt);
+	}
+
+	return count;
+}
+
+static DEVICE_ATTR_RW(dp_sink_rw);
+
+static ssize_t dp_dpcd_read_show(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	unsigned char ret = dp_dpcd_debug_buf[0];
+
+	return scnprintf(buf, PAGE_SIZE, "0x%x\n", ret);
+}
+
+static ssize_t dp_dpcd_read_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct dp_display_private *dp;
+	struct platform_device *pdev = to_platform_device(dev);
+	unsigned long addr;
+
+	if (!dev || !pdev) {
+		pr_err("%s invalid param(s), dev %pK, pdev %pK\n",
+				__func__, dev, pdev);
+		return 0;
+	}
+
+	dp = platform_get_drvdata(pdev);
+
+	if (kstrtoul(buf, 16, &addr) < 0)
+		return -EINVAL;
+
+	drm_dp_dpcd_read(dp->aux->drm_aux, addr, dp_dpcd_debug_buf, 1);
+
+	return count;
+}
+
+static DEVICE_ATTR_RW(dp_dpcd_read);
+
+static ssize_t dp_fix_lane_show(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	return scnprintf(buf, PAGE_SIZE, "%s(%d)\n",
+				dp_fix_lane_num ? "true" : "false", dp_fix_lane_num);
+}
+
+static ssize_t dp_fix_lane_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	if (kstrtoint(buf, 10, &dp_fix_lane_num) < 0)
+		return -EINVAL;
+
+	return count;
+}
+
+static DEVICE_ATTR_RW(dp_fix_lane);
+
+static ssize_t dp_fix_linkrate_show(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	return scnprintf(buf, PAGE_SIZE, "%s(%d)\n",
+				(dp_fix_linkrate > 0) ? "true" : "false", dp_fix_linkrate);
+}
+
+static ssize_t dp_fix_linkrate_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	if (kstrtoint(buf, 10, &dp_fix_linkrate) < 0)
+		return -EINVAL;
+
+	return count;
+}
+
+static DEVICE_ATTR_RW(dp_fix_linkrate);
+
+static ssize_t dp_hdcp_en_show(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	struct dp_display_private *dp;
+	struct platform_device *pdev = to_platform_device(dev);
+	int en;
+
+	dp = platform_get_drvdata(pdev);
+	en = dp->debug->hdcp_disabled;
+
+	return scnprintf(buf, PAGE_SIZE, "%s(%d)\n",
+				(en > 0) ? "true" : "false", en);
+}
+
+static ssize_t dp_hdcp_en_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct dp_display_private *dp;
+	struct platform_device *pdev = to_platform_device(dev);
+	int en;
+
+	if (kstrtoint(buf, 10, &en) < 0)
+		return -EINVAL;
+
+	dp = platform_get_drvdata(pdev);
+	dp->debug->hdcp_disabled = en;
+
+	return count;
+}
+
+static DEVICE_ATTR_RW(dp_hdcp_en);
+
+static ssize_t dp_enhance_en_show(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	return scnprintf(buf, PAGE_SIZE, "%s(%d)\n",
+				(dp_enhance_en > 0) ? "true" : "false", dp_enhance_en);
+}
+
+static ssize_t dp_enhance_en_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	if (kstrtoint(buf, 10, &dp_enhance_en) < 0)
+		return -EINVAL;
+
+	return count;
+}
+
+static DEVICE_ATTR_RW(dp_enhance_en);
+
+static struct attribute *dp_attrs[] = {
+	&dev_attr_dp_fix_lane.attr,
+	&dev_attr_dp_fix_linkrate.attr,
+	&dev_attr_dp_hdcp_en.attr,
+	&dev_attr_dp_enhance_en.attr,
+	&dev_attr_dp_dpcd_read.attr,
+	&dev_attr_dp_sink_rw.attr,
+	&dev_attr_link_status.attr,
+	&dev_attr_video_status.attr,
+	NULL,
+};
+
+ATTRIBUTE_GROUPS(dp);
+#endif
+
 static int dp_display_probe(struct platform_device *pdev)
 {
 	int rc = 0;
@@ -2872,6 +3244,14 @@ static int dp_display_probe(struct platform_device *pdev)
 		pr_err("component add failed, rc=%d\n", rc);
 		goto error;
 	}
+
+#ifdef CONFIG_MOD_DISPLAY
+	rc = sysfs_create_groups(&pdev->dev.kobj, dp_groups);
+	if (rc) {
+		dev_err(&pdev->dev, "%s Failed to create sysfs attr\n", __func__);
+		goto error;
+	}
+#endif
 
 	return 0;
 error:

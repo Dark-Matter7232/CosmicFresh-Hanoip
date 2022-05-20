@@ -432,6 +432,7 @@ int vote(struct votable *votable, const char *client_str, bool enabled, int val)
 	client_id = get_client_id(votable, client_str);
 	if (client_id < 0) {
 		rc = client_id;
+		pr_err("%s client id not found for %s\n", __func__, client_str);
 		goto out;
 	}
 
@@ -500,11 +501,16 @@ int vote(struct votable *votable, const char *client_str, bool enabled, int val)
 					get_client_str(votable, effective_id));
 	}
 
+#ifdef QCOM_BASE
 	votable->voted_on = true;
+#else
+	votable->voted_on = (rc >= 0);
+#endif
 out:
 	unlock_votable(votable);
 	return rc;
 }
+EXPORT_SYMBOL(vote);
 
 /**
  * vote_override() -
@@ -606,6 +612,8 @@ out:
 	else
 		return NULL;
 }
+EXPORT_SYMBOL(find_votable);
+
 
 static int force_active_get(void *data, u64 *val)
 {

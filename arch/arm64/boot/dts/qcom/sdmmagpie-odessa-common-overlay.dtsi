@@ -1,0 +1,631 @@
+/* Copyright (c) 2018, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#include "sdmmagpie-moto-common-overlay.dtsi"
+#include "sdmmagpie-odessa-touch-overlay.dtsi"
+#include "sdmmagpie-audio-overlay.dtsi"
+#include "sdmmagpie-odessa-fps-overlay.dtsi"
+/**
+#include "sdmmagpie-camera-sensor-mot-odessa-overlay.dtsi"
+#include "odessa-panel.dtsi"
+**/
+#include "sdmmagpie-odessa-charger-overlay.dtsi"
+#include "odessa-panel.dtsi"
+#include "sdmmagpie-camera-sensor-mot-odessa-overlay.dtsi"
+
+&qupv3_se0_spi {
+	status = "disabled";
+};
+
+&qupv3_se3_4uart {
+	status = "ok";
+};
+
+&soc {
+	qcom,tz_gpio {
+		compatible = "qcom,tz_gpio";
+		tlmm-tz = <0>,
+			<1>,
+			<2>,
+			<3>;
+	};
+};
+
+&pm6150_l13 {
+	regulator-min-microvolt = <1800000>;
+	qcom,init-voltage = <1800000>;
+	status = "ok";
+};
+
+&tlmm{
+	hall_irq_default: hall_irq_default {
+		pins = "gpio93";
+		drive-strength = <6>;
+		bias-pull-up;
+	};
+
+	sar_irq_default: sar_irq_default {
+		mux {
+			pins = "gpio67";
+			function = "gpio";
+		};
+		config {
+			pins = "gpio67";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+	};
+
+	nfc {
+		nfc_int_active: nfc_int_active {
+			mux {
+				pins = "gpio37";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio37";
+				drive-strength = <2>;
+				bias-disable;
+				input-enable;
+			};
+		};
+
+		nfc_int_suspend: nfc_int_suspend {
+			mux {
+				pins = "gpio37";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio37";
+				drive-strength = <2>;
+				bias-disable;
+				input-enable;
+			};
+		};
+
+		nfc_enable_active: nfc_enable_active {
+			mux {
+				pins = "gpio12";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio12";
+				drive-strength = <2>;
+				bias-disable;
+			};
+		};
+
+		nfc_enable_suspend: nfc_enable_suspend {
+			mux {
+				pins = "gpio12";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio12";
+				drive-strength = <2>;
+				bias-disable;
+			};
+		};
+
+		nfc_clk_req_active: nfc_clk_req_active {
+			mux {
+				pins = "gpio31";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio31";
+				drive-strength = <2>;
+				bias-disable;
+				input-enable;
+			};
+		};
+
+		nfc_clk_req_suspend: nfc_clk_req_suspend {
+			mux {
+				pins = "gpio31";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio31";
+				drive-strength = <2>;
+				bias-disable;
+				input-enable;
+			};
+		};
+	};
+
+	aw8646_gpios {
+		aw8646_mode0_low: aw8646_mode0_low{
+			mux {
+				pins = "gpio30";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio30";
+				drive-strength = <2>; /* 2 MA */
+				output-low;
+			};
+		};
+		aw8646_mode0_high: aw8646_mode0_high{
+			mux {
+				pins = "gpio30";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio30";
+				drive-strength = <2>; /* 2 MA */
+				output-high;
+			};
+		};
+		aw8646_mode0_disable: aw8646_mode0_disable {
+			mux {
+				pins = "gpio30";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio30";
+				input-enable;
+				bias-disable;
+			};
+		};
+
+		aw8646_mode1_low: aw8646_mode1_low {
+			mux {
+				pins = "gpio51";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio51";
+				drive-strength = <2>; /* 2 MA */
+				output-low;
+			};
+		};
+		aw8646_mode1_high: aw8646_mode1_high {
+			mux {
+				pins = "gpio51";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio51";
+				drive-strength = <2>; /* 2 MA */
+				output-high;
+			};
+		};
+		aw8646_mode1_disable: aw8646_mode1_disable {
+			mux {
+				pins = "gpio51";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio51";
+				input-enable;
+				bias-disable;
+			};
+		};
+
+		aw8646_t0_low: aw8646_t0_low {
+			mux {
+				pins = "gpio49";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio49";
+				drive-strength = <2>; /* 2 MA */
+				output-low;
+			};
+		};
+		aw8646_t0_high: aw8646_t0_high {
+			mux {
+				pins = "gpio49";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio49";
+				drive-strength = <2>; /* 2 MA */
+				output-high;
+			};
+		};
+		aw8646_t0_disable: aw8646_t0_disable {
+			mux {
+				pins = "gpio49";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio49";
+				input-enable;
+				bias-disable;
+			};
+		};
+
+		aw8646_t1_low: aw8646_t1_low {
+			mux {
+				pins = "gpio33";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio33";
+				drive-strength = <2>; /* 2 MA */
+				output-low;
+			};
+		};
+		aw8646_t1_high: aw8646_t1_high {
+			mux {
+				pins = "gpio33";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio33";
+				drive-strength = <2>; /* 2 MA */
+				output-high;
+			};
+		};
+		aw8646_t1_disable: aw8646_t1_disable {
+			mux {
+				pins = "gpio33";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio33";
+				input-enable;
+				bias-disable;
+			};
+		};
+
+		aw8646_int_default: aw8646_int_default {
+			mux {
+				pins = "gpio57";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio57";
+				drive-strength = <6>;
+				input-enable;
+				bias-disable;
+			};
+		};
+
+		aw8646_clk_active: aw8646_clk_active {
+			mux {
+				pins = "gpio21";
+				function = "gcc_gp2";
+			};
+			config {
+				pins = "gpio21";
+				drive-strength = <2>; /* 2 MA */
+				bias-pull-none;
+			};
+		};
+		aw8646_clk_sleep: aw8646_clk_sleep{
+			mux {
+				pins = "gpio21";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio21";
+				/* drive-strength = <2>; */ /* 2 MA */
+				/* bias-pull-down; */
+				input-enable;
+				bias-disable;
+			};
+		};
+	};
+};
+
+&soc {
+	sys_temp_support {
+		compatible = "mmi,sys-temp";
+		mmi,temperature-names = "front_temp",
+			"back_temp";
+		mmi,sensor-listener-names = "msm_therm",
+			"pa_therm0", "xo_therm",
+			"quiet_therm", "chg_therm";
+		status = "ok";
+	};
+
+	moto_aw8646_support {
+		compatible = "moto,aw8646";
+		status = "ok";
+		pinctrl-names = "m0_low", "m0_high", "m0_disable",
+				"m1_low", "m1_high", "m1_disable",
+				"t0_low", "t0_high", "t0_disable",
+				"t1_low", "t1_high", "t1_disable",
+				"aw8646_int_default",
+				"aw8646_clk_active", "aw8646_clk_sleep";
+		pinctrl-0 = <&aw8646_mode0_low>;
+		pinctrl-1 = <&aw8646_mode0_high>;
+		pinctrl-2 = <&aw8646_mode0_disable>;
+		pinctrl-3 = <&aw8646_mode1_low>;
+		pinctrl-4 = <&aw8646_mode1_high>;
+		pinctrl-5 = <&aw8646_mode1_disable>;
+		pinctrl-6 = <&aw8646_t0_low>;
+		pinctrl-7 = <&aw8646_t0_high>;
+		pinctrl-8 = <&aw8646_t0_disable>;
+		pinctrl-9 = <&aw8646_t1_low>;
+		pinctrl-10 = <&aw8646_t1_high>;
+		pinctrl-11 = <&aw8646_t1_disable>;
+		pinctrl-12 = <&aw8646_int_default>;
+		pinctrl-13 = <&aw8646_clk_active>;
+		pinctrl-14 = <&aw8646_clk_sleep>;
+		clocks = <&clock_gcc 36>;
+		clock-names = "gcc_gp2";
+		vdd-supply = <&pm6150_l13>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <57 0x2002>;
+		aw8646-gpios = <52 57 21 32 30 51 29 50 49 33>;
+		aw8646-gpios-cells = <10>;
+		aw8646-max-freq = <250000>;
+		enable-hw-clock;
+		power-default-off;
+	};
+};
+
+&thermal_zones {
+	xo_therm {
+		polling-delay-passive = <0>;
+		polling-delay = <0>;
+		thermal-governor = "user_space";
+		thermal-sensors = <&pm6150_adc_tm ADC_XO_THERM_PU2>;
+		trips {
+			active-config0 {
+				temperature = <125000>;
+				hysteresis = <1000>;
+				type = "passive";
+			};
+		};
+	};
+
+	pa_therm0 {
+		polling-delay-passive = <0>;
+		polling-delay = <0>;
+		thermal-governor = "user_space";
+		thermal-sensors = <&pm6150_adc_tm ADC_AMUX_THM2_PU2>;
+		trips {
+			active-config0 {
+				temperature = <125000>;
+				hysteresis = <1000>;
+				type = "passive";
+			};
+		};
+	};
+
+	msm_therm {
+		polling-delay-passive = <0>;
+		polling-delay = <0>;
+		thermal-governor = "user_space";
+		thermal-sensors = <&pm6150_adc_tm ADC_AMUX_THM3_PU2>;
+		trips {
+			active-config0 {
+				temperature = <125000>;
+				hysteresis = <1000>;
+				type = "passive";
+			};
+		};
+	};
+
+	chg_therm {
+		polling-delay-passive = <0>;
+		polling-delay = <0>;
+		thermal-governor = "user_space";
+		thermal-sensors = <&pm6150l_adc_tm ADC_AMUX_THM1_PU2>;
+		trips {
+			active-config0 {
+				temperature = <125000>;
+				hysteresis = <1000>;
+				type = "passive";
+			};
+		};
+	};
+
+	quiet_therm {
+		polling-delay-passive = <0>;
+		polling-delay = <0>;
+		thermal-governor = "user_space";
+		thermal-sensors = <&pm6150l_adc_tm ADC_GPIO4_PU2>;
+		trips {
+			active-config0 {
+				temperature = <125000>;
+				hysteresis = <1000>;
+				type = "passive";
+			};
+		};
+	};
+	quiet-therm-step {
+		trips {
+			modem_trip1: modem-trip1 {
+				temperature = <70000>;
+				hysteresis = <2000>;
+				type = "passive";
+			};
+			modem_trip2: modem-trip2 {
+				temperature = <72000>;
+				hysteresis = <2000>;
+				type = "passive";
+			};
+			modem_trip3_batt_trip1: modem-trip3 {
+				temperature = <75000>;
+				hysteresis = <2000>;
+				type = "passive";
+			};
+		};
+	};
+};
+
+&qupv3_se2_i2c {
+	status = "ok";
+	nq@28 {
+		compatible = "qcom,nq-nci";
+		reg = <0x28>;
+		status = "ok";
+		qcom,nq-irq = <&tlmm 37 0x00>;
+		qcom,nq-ven = <&tlmm 12 0x00>;
+		qcom,nq-clkreq = <&tlmm 31 0x00>;
+		qcom,nq-firm = <&tlmm 36 0x00>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <37 0>;
+		interrupt-names = "nfc_irq";
+		pinctrl-names = "nfc_active", "nfc_suspend";
+		pinctrl-0 = <&nfc_int_active &nfc_enable_active
+				&nfc_clk_req_active>;
+		pinctrl-1 = <&nfc_int_suspend &nfc_enable_suspend
+				&nfc_clk_req_suspend>;
+	};
+};
+
+&qupv3_se9_i2c {
+    status = "ok";
+
+    magnachip@d {
+		compatible = "magnachip,akm09970";
+		label = "akm09970";
+		reg = <0x0d>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&hall_irq_default>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <93 0x2002>;
+		vdd-supply = <&pm6150_l10>;
+		magnachip,init-freq = <100>;
+		magnachip,gpio-int = <&tlmm 93 0x2002>;
+		magnachip,gpio_rst = <&tlmm 106 0>;
+		magnachip,power-always-on;
+		/* magnachip,use-hrtimer; */
+	};
+};
+
+&L11C {
+	regulator-min-microvolt = <3300000>;
+	regulator-max-microvolt = <3400000>;
+	qcom,init-voltage = <3300000>;
+};
+
+&qupv3_se7_i2c {
+    status = "ok";
+
+    abov_sar@20 {
+        status = "ok";
+        compatible = "abov,abov_sar_mmi_overlay";
+        reg = <0x20>;
+        cap_vdd-supply = <&pm6150l_l11>;         //VREG_L18A_3P0
+        cap_svdd-supply =<&pm6150_l10>;       //VREG_L10A_1P8
+        interrupt-parent = <&tlmm>;
+        interrupts = <67 0x2002>;
+        gpios = <&tlmm 67 0x2002>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&sar_irq_default>;
+
+        reg_array_len = <0x03>;
+        reg_array_val = <0x07 0x00 0x08 0x1F 0xFB 0x01>;
+        cap,channel_number = <0x03>;
+        cap,use_channel_ch0 = <0x00>;
+        cap,use_channel_ch1 = <0x01>;
+        cap,use_channel_ch2 = <0x02>;
+        ch0_name = "capsense_bottom";
+        ch1_name = "capsense_top_left";
+        ch2_name = "capsense_top_right";
+        label = "AbovCapSense";
+    };
+};
+
+&pm6150_vadc {
+	sdm_therm {
+                reg = <ADC_AMUX_THM2_PU2>;
+                label = "sdm_therm";
+                qcom,ratiometric;
+                qcom,hw-settle-time = <200>;
+                qcom,pre-scaling = <1 1>;
+        };
+
+	chg_therm {
+                reg = <ADC_AMUX_THM3_PU2>;
+                label = "chg_therm";
+                qcom,ratiometric;
+                qcom,hw-settle-time = <200>;
+                qcom,pre-scaling = <1 1>;
+        };
+};
+
+&pm6150_adc_tm {
+	io-channels = <&pm6150_vadc ADC_XO_THERM_PU2>,
+			<&pm6150_vadc ADC_AMUX_THM2_PU2>,
+			<&pm6150_vadc ADC_AMUX_THM3_PU2>,
+			<&pm6150_vadc ADC_AMUX_THM4_PU2>;
+	sdm_therm {
+                reg = <ADC_AMUX_THM2_PU2>;
+                qcom,ratiometric;
+                qcom,hw-settle-time = <200>;
+        };
+
+	chg_therm {
+		reg = <ADC_AMUX_THM3_PU2>;
+		qcom,ratiometric;
+		qcom,hw-settle-time = <200>;
+	};
+};
+
+&pm6150l_vadc {
+	pa_therm0 {
+		reg = <ADC_AMUX_THM1_PU2>;
+		label = "pa_therm0";
+		qcom,ratiometric;
+		qcom,hw-settle-time = <200>;
+		qcom,pre-scaling = <1 1>;
+	};
+
+	quiet_therm {
+                reg = <ADC_GPIO4_PU2>;
+                label = "quiet_therm";
+                qcom,ratiometric;
+                qcom,hw-settle-time = <200>;
+                qcom,pre-scaling = <1 1>;
+        };
+};
+
+&pm6150l_adc_tm {
+	io-channels = <&pm6150l_vadc ADC_AMUX_THM1_PU2>,
+			<&pm6150l_vadc ADC_AMUX_THM3_PU2>,
+			<&pm6150l_vadc ADC_GPIO4_PU2>;
+
+	pa_therm0 {
+		reg = <ADC_AMUX_THM1_PU2>;
+		qcom,ratiometric;
+		qcom,hw-settle-time = <200>;
+	};
+
+	quiet_therm {
+                reg = <ADC_GPIO4_PU2>;
+                qcom,ratiometric;
+                qcom,hw-settle-time = <200>;
+        };
+};
+
+&sde_dp {
+	status = "disabled";
+};
+
+
+&mdss_mdp {
+	connectors = <&sde_rscc &sde_wb &sde_dsi>;
+};
+
+&spmi_bus {
+	qcom,pm6150@0 {
+		qpnp-power-on-mmi@800 {
+			compatible = "qcom,qpnp-power-on-mmi";
+			interrupts = <0x0 0x8 0x3 IRQ_TYPE_NONE>;
+			interrupt-names = "kpdpwr-bark";
+		};
+	};
+};
+
+&ufshc_mem {
+        spm-level = <3>;
+};

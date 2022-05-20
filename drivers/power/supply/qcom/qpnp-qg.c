@@ -960,6 +960,11 @@ static int qg_esr_estimate(struct qpnp_qg *chip)
 	int rc, i, ibat = 0;
 	u8 esr_done_count, reg0 = 0, reg1 = 0;
 	bool is_charging = false;
+	struct power_supply	*mmi_chrg_mgr_psy = NULL;
+	union power_supply_propval val;
+
+	if (chip->dt.cp_use_internal_qg)
+		mmi_chrg_mgr_psy = power_supply_get_by_name("mmi_chrg_manager");
 
 	if (chip->dt.esr_disable)
 		return 0;
@@ -1011,6 +1016,15 @@ static int qg_esr_estimate(struct qpnp_qg *chip)
 	if (rc < 0) {
 		pr_err("Failed to hold master, rc=%d\n", rc);
 		goto done;
+	}
+
+	if (mmi_chrg_mgr_psy) {
+		val.intval = 0;
+		rc = power_supply_set_property(mmi_chrg_mgr_psy,
+					POWER_SUPPLY_PROP_CP_ENABLE, &val);
+		if (rc < 0)
+			pr_err("Failed to disable charging pump, rc=%d\n", rc);
+		msleep(1000);
 	}
 
 	for (i = 0; i < qg_esr_count; i++) {
@@ -1099,6 +1113,14 @@ static int qg_esr_estimate(struct qpnp_qg *chip)
 		}
 		/* delay before the next ESR measurement */
 		msleep(200);
+	}
+
+	if (mmi_chrg_mgr_psy) {
+		val.intval = 1;
+		rc = power_supply_set_property(mmi_chrg_mgr_psy,
+					POWER_SUPPLY_PROP_CP_ENABLE, &val);
+		if (rc < 0)
+			pr_err("Failed to enable charging pump, rc=%d\n", rc);
 	}
 
 	rc = qg_process_esr_data(chip);
@@ -2050,6 +2072,11 @@ static int qg_psy_set_property(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_BATT_AGE_LEVEL:
 		rc = qg_setprop_batt_age_level(chip, pval->intval);
 		break;
+	case POWER_SUPPLY_PROP_BATT_FULL_CURRENT:
+		chip->dt.iterm_ma = pval->intval;
+		qg_dbg(chip, QG_DEBUG_STATUS, "set bat full current =%d\n",
+			chip->dt.iterm_ma);
+		break;
 	default:
 		break;
 	}
@@ -2126,6 +2153,9 @@ static int qg_psy_get_property(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_CHARGE_COUNTER:
 		rc = qg_get_charge_counter(chip, &pval->intval);
 		break;
+	case POWER_SUPPLY_PROP_CHARGE_NOW:
+		pval->intval = chip->cl->init_cap_uah;
+		break;
 	case POWER_SUPPLY_PROP_CHARGE_FULL:
 		if (!chip->dt.cl_disable && chip->dt.cl_feedback_on)
 			rc = qg_get_learned_capacity(chip, &temp);
@@ -2193,7 +2223,12 @@ static int qg_psy_get_property(struct power_supply *psy,
 		break;
 	}
 
-	return rc;
+	if (rc < 0) {
+		pr_err("Failed to get property: %d\n", rc);
+		return rc;
+	}
+
+	return 0;
 }
 
 static int qg_property_is_writeable(struct power_supply *psy,
@@ -2206,6 +2241,7 @@ static int qg_property_is_writeable(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_SOH:
 	case POWER_SUPPLY_PROP_FG_RESET:
 	case POWER_SUPPLY_PROP_BATT_AGE_LEVEL:
+	case POWER_SUPPLY_PROP_BATT_FULL_CURRENT:
 		return 1;
 	default:
 		break;
@@ -2235,6 +2271,7 @@ static enum power_supply_property qg_psy_props[] = {
 	POWER_SUPPLY_PROP_BATT_PROFILE_VERSION,
 	POWER_SUPPLY_PROP_CYCLE_COUNT,
 	POWER_SUPPLY_PROP_CYCLE_COUNTS,
+	POWER_SUPPLY_PROP_CHARGE_NOW,
 	POWER_SUPPLY_PROP_CHARGE_FULL,
 	POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN,
 	POWER_SUPPLY_PROP_TIME_TO_FULL_AVG,
@@ -2896,6 +2933,7 @@ static int get_batt_id_ohm(struct qpnp_qg *chip, u32 *batt_id_ohm)
 	return 0;
 }
 
+#define SDAM_MAGIC_NUMBER		0x12345678
 static int qg_load_battery_profile(struct qpnp_qg *chip)
 {
 	struct device_node *node = chip->dev->of_node;
@@ -2963,6 +3001,13 @@ static int qg_load_battery_profile(struct qpnp_qg *chip)
 	if (rc < 0) {
 		pr_err("Failed to read battery fastcharge current rc:%d\n", rc);
 		chip->bp.fastchg_curr_ma = -EINVAL;
+	}
+
+	rc = of_property_read_u32(profile_node, "qcom,sdam-magic-number",
+				&chip->bp.sdam_magic_number);
+	if (rc < 0) {
+		pr_err("Failed to read sdam magic number rc:%d\n", rc);
+		chip->bp.sdam_magic_number = SDAM_MAGIC_NUMBER;
 	}
 
 	/*
@@ -3309,7 +3354,6 @@ static int qg_set_wa_flags(struct qpnp_qg *chip)
 	return 0;
 }
 
-#define SDAM_MAGIC_NUMBER		0x12345678
 static int qg_sanitize_sdam(struct qpnp_qg *chip)
 {
 	int rc = 0;
@@ -3321,10 +3365,10 @@ static int qg_sanitize_sdam(struct qpnp_qg *chip)
 		return rc;
 	}
 
-	if (data == SDAM_MAGIC_NUMBER) {
+	if (data == chip->bp.sdam_magic_number) {
 		qg_dbg(chip, QG_DEBUG_PON, "SDAM valid\n");
 	} else if (data == 0) {
-		rc = qg_sdam_write(SDAM_MAGIC, SDAM_MAGIC_NUMBER);
+		rc = qg_sdam_write(SDAM_MAGIC, chip->bp.sdam_magic_number);
 		if (!rc)
 			qg_dbg(chip, QG_DEBUG_PON, "First boot. SDAM initilized\n");
 	} else {
@@ -3332,7 +3376,7 @@ static int qg_sanitize_sdam(struct qpnp_qg *chip)
 		rc = qg_sdam_clear();
 		if (!rc) {
 			pr_err("SDAM uninitialized, SDAM reset\n");
-			rc = qg_sdam_write(SDAM_MAGIC, SDAM_MAGIC_NUMBER);
+			rc = qg_sdam_write(SDAM_MAGIC, chip->bp.sdam_magic_number);
 		}
 	}
 
@@ -4023,6 +4067,9 @@ static int qg_parse_dt(struct qpnp_qg *chip)
 	chip->dt.esr_discharge_enable = of_property_read_bool(node,
 					"qcom,esr-discharge-enable");
 
+	chip->dt.cp_use_internal_qg = of_property_read_bool(node,
+					"mmi,cp-use-internal-qg");
+
 	rc = of_property_read_u32(node, "qcom,esr-qual-current-ua", &temp);
 	if (rc < 0)
 		chip->dt.esr_qual_i_ua = DEFAULT_ESR_QUAL_CURRENT_UA;
@@ -4496,6 +4543,8 @@ static int qpnp_qg_probe(struct platform_device *pdev)
 	}
 
 	chip->dev = &pdev->dev;
+	qg_debug_mask |= QG_DEBUG_PON | QG_DEBUG_STATUS
+		| QG_DEBUG_IRQ | QG_DEBUG_PM | QG_DEBUG_ESR;
 	chip->debug_mask = &qg_debug_mask;
 	platform_set_drvdata(pdev, chip);
 	INIT_WORK(&chip->udata_work, process_udata_work);

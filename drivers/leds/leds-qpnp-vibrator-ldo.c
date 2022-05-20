@@ -46,6 +46,11 @@
 #define QPNP_VIB_MAX_PLAY_MS		15000
 #define QPNP_VIB_OVERDRIVE_PLAY_MS	30
 
+#ifdef CONFIG_AF_NOISE_ELIMINATION
+extern int mot_actuator_on_vibrate_start(void);
+extern int mot_actuator_on_vibrate_stop(void);
+#endif
+
 struct vib_ldo_chip {
 	struct led_classdev	cdev;
 	struct regmap		*regmap;
@@ -120,10 +125,23 @@ static int qpnp_vib_ldo_set_voltage(struct vib_ldo_chip *chip, int new_uV)
 static inline int qpnp_vib_ldo_enable(struct vib_ldo_chip *chip, bool enable)
 {
 	int ret;
+#ifdef CONFIG_AF_NOISE_ELIMINATION
+	static int mot_actuator_started = 0;
+#endif
 
 	if (chip->vib_enabled == enable)
 		return 0;
 
+#ifdef CONFIG_AF_NOISE_ELIMINATION
+	if ((chip->vib_play_ms > 80) && (enable)) {
+		mot_actuator_on_vibrate_start();
+		mot_actuator_started = 1;
+	}
+	if(!enable && (mot_actuator_started == 1 )) {
+		mot_actuator_on_vibrate_stop();
+		mot_actuator_started = 0;
+	}
+#endif
 	ret = regmap_update_bits(chip->regmap,
 				chip->base + QPNP_VIB_LDO_REG_EN_CTL,
 				QPNP_VIB_LDO_EN,
@@ -162,7 +180,7 @@ static int qpnp_vibrator_play_on(struct vib_ldo_chip *chip)
 		pr_err("set voltage = %duV failed, ret=%d\n", volt_uV, ret);
 		return ret;
 	}
-	pr_debug("voltage set to %d uV\n", volt_uV);
+	pr_debug("%s voltage set to %d uV\n", __func__, volt_uV);
 
 	ret = qpnp_vib_ldo_enable(chip, true);
 	if (ret < 0) {
@@ -296,6 +314,8 @@ static ssize_t qpnp_vib_store_duration(struct device *dev,
 	if (val <= 0)
 		return count;
 
+	pr_debug("%s duration time = %llums\n", __func__, val);
+
 	if (val < QPNP_VIB_MIN_PLAY_MS)
 		val = QPNP_VIB_MIN_PLAY_MS;
 
@@ -335,7 +355,7 @@ static ssize_t qpnp_vib_store_activate(struct device *dev,
 	mutex_lock(&chip->lock);
 	hrtimer_cancel(&chip->stop_timer);
 	chip->state = val;
-	pr_debug("state = %d, time = %llums\n", chip->state, chip->vib_play_ms);
+	pr_info("%s state = %d, time = %llums\n", __func__, chip->state, chip->vib_play_ms);
 	mutex_unlock(&chip->lock);
 	schedule_work(&chip->vib_work);
 

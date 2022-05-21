@@ -1,0 +1,8 @@
+config MMI_PARALLEL_CHARGER
+        tristate "MOTO PARALLEL CHARGER"
+        default n
+        help
+         Say Y here if you have a moto parallel charger.
+
+         This driver can also be built as a module.  If so, the module
+         will be called mmi_parallel_charger.

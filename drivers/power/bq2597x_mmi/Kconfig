@@ -1,0 +1,26 @@
+config BQ2597X_MMI
+        tristate "BQ2597X"
+        default n
+        help
+         Say Y here if you have a BQ2597X compatible
+         device connected.
+
+config BQ2597X_DUAL
+        bool "BQ2597X DUAL"
+        depends on BQ2597X_MMI
+        default n
+        help
+         Say Y here if your chip uses the BQ2597X DUAL
+
+         This driver can also be built as a module.  If so, the module
+         will be called bq2597x_dual_mmi.
+
+config BQ2597X_SINGLE
+        bool "BQ2597X SINGLE"
+        depends on BQ2597X_MMI
+        default n
+        help
+         Say Y here if your chip uses the BQ2597X SINGLE
+
+         This driver can also be built as a module.  If so, the module
+         will be called bq2597x_single_mmi.

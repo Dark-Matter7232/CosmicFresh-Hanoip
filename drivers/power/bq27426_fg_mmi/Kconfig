@@ -1,0 +1,23 @@
+config BQ27426_FG_MMI
+        tristate "BQ27426 FG"
+        default n
+        help
+         Say Y here if you have a bq27426 fg compatible
+         device connected.
+
+         This driver can also be built as a module.  If so, the module
+         will be called bq27426_fg_mmi.
+
+config ATL_4000MAH_8A_BATTERY_PROFILE
+        bool "ATL 4000MAH 8A BATTERY PROFILE"
+        depends on BQ27426_FG_MMI
+        default n
+        help
+         Say Y here if your chip uses the ATL 4000MAH 8A BATTERY PROFILE
+
+config SCUD_4000MAH_8A_BATTERY_PROFILE
+        bool "SCUD 4000MAH 8A BATTERY PROFILE"
+        depends on BQ27426_FG_MMI
+        default n
+        help
+         Say Y here if your chip uses the SCUD 4000MAH 8A BATTERY PROFILE

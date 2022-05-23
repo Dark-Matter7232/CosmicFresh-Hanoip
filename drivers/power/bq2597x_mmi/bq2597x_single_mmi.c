@@ -38,12 +38,6 @@
 #include "bq25970_reg.h"
 #include <linux/gpio.h>
 
-#ifdef pr_debug
-#undef pr_debug
-#define pr_debug pr_err
-
-#endif
-
 enum {
 	ADC_IBUS,
 	ADC_VBUS,

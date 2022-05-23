@@ -57,13 +57,6 @@
 #include "lenovo_scud_df1_gmfs.h"
 #endif
 
-#undef pr_debug
-#define pr_debug pr_err
-#undef pr_info
-#define pr_info pr_err
-#undef dev_dbg
-#define dev_dbg dev_err
-
 #define mmi_fg_err(chip, fmt, ...)		\
 	pr_err("%s: %s: " fmt, chip->name,	\
 		__func__, ##__VA_ARGS__)	\

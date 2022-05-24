@@ -3855,6 +3855,7 @@ static bool age_lruvec(struct lruvec *lruvec, struct scan_control *sc,
 
 /* to protect the working set of the last N jiffies */
 static unsigned long lru_gen_min_ttl __read_mostly;
+static int lru_gen_min_ttl_unsatisfied;
 
 static void lru_gen_age_node(struct pglist_data *pgdat, struct scan_control *sc)
 {
@@ -3901,6 +3902,7 @@ static void lru_gen_age_node(struct pglist_data *pgdat, struct scan_control *sc)
 	 */
 	if (!success) {
 		pr_err("mglru: min_ttl unsatisfied, calling OOM killer\n");
+		lru_gen_min_ttl_unsatisfied++;
 #ifdef CONFIG_ANDROID_SIMPLE_LMK
 		simple_lmk_trigger();
 #else
@@ -4660,6 +4662,15 @@ static struct kobj_attribute lru_gen_min_ttl_attr = __ATTR(
 	min_ttl_ms, 0644, show_min_ttl, store_min_ttl
 );
 
+static ssize_t show_min_ttl_unsatisfied(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%d\n", lru_gen_min_ttl_unsatisfied);
+}
+
+static struct kobj_attribute lru_gen_min_ttl_unsatisfied_attr = __ATTR(
+	min_ttl_unsatisfied, 0444, show_min_ttl_unsatisfied, NULL
+);
+
 static ssize_t show_enable(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
 	unsigned int caps = 0;
@@ -4708,6 +4719,7 @@ static struct kobj_attribute lru_gen_enabled_attr = __ATTR(
 );
 
 static struct attribute *lru_gen_attrs[] = {
+	&lru_gen_min_ttl_unsatisfied_attr.attr,
 	&lru_gen_min_ttl_attr.attr,
 	&lru_gen_enabled_attr.attr,
 	NULL

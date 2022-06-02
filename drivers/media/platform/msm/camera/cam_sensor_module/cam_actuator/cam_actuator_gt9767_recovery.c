@@ -146,8 +146,14 @@ static int32_t cam_gt9767_recovery_handle_init(uint32_t arg)
 		pr_debug("IOVDD:%p", ioVdd);
 	}
 
-	regulator_enable(afVdd);
-	regulator_enable(ioVdd);
+	rc = regulator_enable(afVdd);
+	if (rc < 0)
+		pr_err("%s: Could not enable regulator afVdd, rc=%d\n", __func__, rc);
+
+	rc = regulator_enable(ioVdd);
+	if (rc < 0)
+		pr_err("%s: Could not enable regulator ioVdd, rc=%d\n", __func__, rc);
+
 	usleep_range(200, 300);
 
 	cam_sensor_gt9767_enter_test_mode();

@@ -1058,7 +1058,7 @@ static void dsi_display_show_para(char* buf, char* pbuf, enum dsi_cmd_set_type t
 	strcat(buf, pbuf);
 	memset(pbuf, 0, PAGE_SIZE);
 	for (i=0; i<count; i++) {
-	rc = snprintf(pbuf, PAGE_SIZE, "%2x %2x %2x %2x %2x %2x   %2x ",
+	rc = snprintf(pbuf, PAGE_SIZE, "%2x %2x %2x %2x %2x %2lx   %2lx ",
 			priv_info->cmd_sets[type].cmds[i].msg.type, 		//data0
 			priv_info->cmd_sets[type].cmds[i].last_command, 	//data1
 			priv_info->cmd_sets[type].cmds[i].msg.channel,	//data2
@@ -1107,7 +1107,7 @@ static ssize_t dsi_display_parse_para_get(struct device *dev,
 			mode_timing->v_active, mode_timing->v_front_porch, mode_timing->v_back_porch, 	mode_timing->v_sync_width);
 		strcat(buf, pbuf);
 		memset(pbuf, 0, PAGE_SIZE);
-		rc = snprintf(pbuf, PAGE_SIZE, "panel clk rate:%d mdp_transfer_time_us:%d refresh_rate:%d\n",
+		rc = snprintf(pbuf, PAGE_SIZE, "panel clk rate:%lld mdp_transfer_time_us:%d refresh_rate:%d\n",
 			display_mode->priv_info->clk_rate_hz , display_mode->priv_info->mdp_transfer_time_us, mode_timing->refresh_rate);
 		strcat(buf, pbuf);
 		dsi_display_show_para(buf, pbuf, DSI_CMD_SET_ON, priv_info);

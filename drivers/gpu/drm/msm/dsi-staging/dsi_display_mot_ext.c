@@ -289,7 +289,7 @@ static char *strtok(char *s, const char * sep)
 
 static bool isNumStr(char *s)
 {
-	int i;
+	int i = 0;
 	int len;
 	char* pbuf = s;
 

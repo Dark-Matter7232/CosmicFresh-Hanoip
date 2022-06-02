@@ -102,8 +102,8 @@ extern bool msm_vidc_syscache_disable;
 #define msm_vidc_debugfs_init_drv(x, ...) 1
 #define msm_vidc_debugfs_init_core(x, ...) 1
 #define msm_vidc_debugfs_init_inst(x, ...) 1
-#define msm_vidc_debugfs_deinit_inst(x, ...) 1
-#define msm_vidc_debugfs_update(x, ...) 1
+#define msm_vidc_debugfs_deinit_inst(x, ...) do { } while (0)
+#define msm_vidc_debugfs_update(x, ...) do { } while (0)
 #define msm_vidc_check_ratelimit(x, ...) 1
 
 static inline char *get_debug_level_str(int level)

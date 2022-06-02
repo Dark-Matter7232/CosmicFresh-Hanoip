@@ -895,7 +895,7 @@ static int smblib_set_usb_pd_fsw(struct smb_charger *chg, int voltage)
 static int smblib_set_usb_pd_allowed_voltage(struct smb_charger *chg,
 					int min_allowed_uv, int max_allowed_uv)
 {
-	int rc;
+	int rc = 0;
 #ifdef QCOM_BASE
 	int aicl_threshold;
 	u8 vbus_allowance;

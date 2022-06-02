@@ -142,14 +142,20 @@ void mmc_gpiod_restore_cd_irq(struct mmc_host *host)
 {
 	struct mmc_gpio *ctx = host->slot.handler_priv;
 	int irq = host->slot.cd_irq;
+	int ret;
 
-	if (irq >= 0) {
-		devm_request_threaded_irq(host->parent, irq,
-			NULL, ctx->cd_gpio_isr,
-			IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING |
-			IRQF_ONESHOT,
-			ctx->cd_label, host);
-	}
+	if (irq < 0)
+		return;
+
+	ret = devm_request_threaded_irq(host->parent, irq,
+		NULL, ctx->cd_gpio_isr,
+		IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING |
+		IRQF_ONESHOT,
+		ctx->cd_label, host);
+
+	if (ret)
+		dev_err(mmc_dev(host), "%s: failed ret=%d\n",
+			__func__, ret);
 }
 EXPORT_SYMBOL(mmc_gpiod_restore_cd_irq);
 

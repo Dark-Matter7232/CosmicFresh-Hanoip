@@ -18320,7 +18320,7 @@ static const int mi2s_rx_vi_fb_tx_value[] = {
 };
 
 
-static const int const sec_mi2s_rx_vi_fb_tx_value[] = {
+static const int sec_mi2s_rx_vi_fb_tx_value[] = {
 	MSM_BACKEND_DAI_MAX, MSM_BACKEND_DAI_SECONDARY_MI2S_TX
 };
 

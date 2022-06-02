@@ -237,7 +237,7 @@ struct smb5 {
 
 static int __debug_mask;
 module_param_named(
-	debug_mask, __debug_mask, int, 0600
+	debug_mask, __debug_mask, int, 0400
 );
 
 static int __pd_disabled;
@@ -3992,7 +3992,7 @@ static int smb5_probe(struct platform_device *pdev)
 
 	chg = &chip->chg;
 	chg->dev = &pdev->dev;
-	__debug_mask |= PR_MOTO;
+	__debug_mask |= 0;
 	chg->debug_mask = &__debug_mask;
 	chg->pd_disabled = &__pd_disabled;
 	chg->weak_chg_icl_ua = &__weak_chg_icl_ua;

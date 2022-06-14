@@ -148,6 +148,7 @@ snd-soc-rt5677-spi-objs := rt5677-spi.o
 snd-soc-sgtl5000-objs := sgtl5000.o
 snd-soc-alc5623-objs := alc5623.o
 snd-soc-alc5632-objs := alc5632.o
+snd-soc-aw882xx-objs := aw882xx.o
 snd-soc-sigmadsp-objs := sigmadsp.o
 snd-soc-sigmadsp-i2c-objs := sigmadsp-i2c.o
 snd-soc-sigmadsp-regmap-objs := sigmadsp-regmap.o
@@ -296,6 +297,10 @@ obj-$(CONFIG_SND_SOC_AK4671)	+= snd-soc-ak4671.o
 obj-$(CONFIG_SND_SOC_AK5386)	+= snd-soc-ak5386.o
 obj-$(CONFIG_SND_SOC_ALC5623)    += snd-soc-alc5623.o
 obj-$(CONFIG_SND_SOC_ALC5632)	+= snd-soc-alc5632.o
+ifneq ($(filter m y, $(CONFIG_SND_SOC_AWINIC_AW882XX)),)
+	ccflags-y += -DCONFIG_AW882XX_CODEC -DCONFIG_AW882XX_DSP
+endif
+obj-$(CONFIG_SND_SOC_AWINIC_AW882XX)	+= snd-soc-aw882xx.o
 obj-$(CONFIG_SND_SOC_ARIZONA)	+= snd-soc-arizona.o
 obj-$(CONFIG_SND_SOC_BT_SCO)	+= snd-soc-bt-sco.o
 obj-$(CONFIG_SND_SOC_CQ0093VC) += snd-soc-cq93vc.o

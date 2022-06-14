@@ -52,6 +52,7 @@ config SND_SOC_ALL_CODECS
 	select SND_SOC_AK5386
 	select SND_SOC_ALC5623 if I2C
 	select SND_SOC_ALC5632 if I2C
+	select SND_SOC_AWINIC_AW882XX
 	select SND_SOC_BT_SCO
 	select SND_SOC_CQ0093VC
 	select SND_SOC_CS35L32 if I2C
@@ -426,6 +427,9 @@ config SND_SOC_ALC5623
 config SND_SOC_ALC5632
 	tristate
 
+config SND_SOC_AWINIC_AW882XX
+	tristate "Awinic AW882XX CODEC"
+	
 config SND_SOC_BT_SCO
 	tristate "Dummy BT SCO codec driver"
 

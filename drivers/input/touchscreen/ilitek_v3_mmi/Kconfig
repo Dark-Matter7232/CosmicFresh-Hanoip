@@ -1,0 +1,65 @@
+#
+# Ilitek touchscreen driver configuration
+#
+config TOUCHSCREEN_ILITEK_CHIPSET
+	tristate "TOUCHSCREEN_ILITEK CHIPSET"
+	help
+	  Say Y here if you have a Elan CHIPSET touchscreen.
+	  ELAN controllers are multi touch controllers which can
+	  report 10 touches at a time.
+
+	  If unusre, say N.
+
+config INPUT_ILI_0FLASH_MMI_ENABLE_DOUBLE_TAP
+	bool "Moto Ilitek Doubel tap"
+	depends on TOUCHSCREEN_ILITEK_CHIPSET
+	default n
+	help
+	  Say Y here if you want to have Double tap support on Moto Ilitek.
+
+	  If unsure, say N.
+
+config INPUT_ILI_PANEL_NOTIFICATIONS
+	bool "Moto Ilitek panel notification"
+	depends on TOUCHSCREEN_ILITEK_CHIPSET
+	default n
+	help
+	  Say Y here if you want to have panel notification support on Moto Ilitek.
+
+	  If unsure, say N.
+
+config ILITEK_RESUME_BY_DDI
+	bool "Moto Ilitek firmware by display"
+	depends on TOUCHSCREEN_ILITEK_CHIPSET
+	default n
+	help
+	  Say Y here if you want to firmware by display support on Moto Ilitek.
+
+	  If unsure, say N.
+
+config ILITEK_FW_PANEL
+	bool "Moto Ilitek firmware by panel"
+	depends on TOUCHSCREEN_ILITEK_CHIPSET
+	default n
+	help
+	  Say Y here if you want to firmware by panel support on Moto Ilitek.
+
+	  If unsure, say N.
+
+config ILITEK_ESD
+	bool "Moto Ilitek ESD by panel"
+	depends on TOUCHSCREEN_ILITEK_CHIPSET
+	default n
+	help
+	  Say Y here if you want to support ESD on Moto Ilitek.
+
+	  If unsure, say N.
+
+config ILITEK_GESTURE
+	bool "Moto Ilitek gesture by panel"
+	depends on TOUCHSCREEN_ILITEK_CHIPSET
+	default n
+	help
+	  Say Y here if you want to support gesture on Moto Ilitek.
+
+	  If unsure, say N.

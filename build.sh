@@ -1,0 +1,126 @@
+#!/bin/bash
+
+# Initialize variables
+
+GRN='\033[01;32m'
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
+RED='\033[01;31m'
+RST='\033[0m'
+ORIGIN_DIR=$(pwd)
+TOOLCHAIN=$ORIGIN_DIR/build-shit
+IMAGE=$ORIGIN_DIR/out/arch/arm64/boot/Image.gz
+DEVICE=hanoip
+CONFIG="${DEVICE}_defconfig"
+
+# export environment variables
+export_env_vars() {
+    export KBUILD_BUILD_USER=Const
+    export KBUILD_BUILD_HOST=Coccinelle
+    export ARCH=arm64
+    
+    # CCACHE
+    export USE_CCACHE=1
+    export PATH="/usr/lib/ccache/bin/:$PATH"
+    export CCACHE_SLOPPINESS="file_macro,locale,time_macros"
+    export CCACHE_NOHASHDIR="true"
+}
+
+script_echo() {
+    echo "  $1"
+}
+exit_script() {
+    kill -INT $$
+}
+add_deps() {
+    echo -e "${CYAN}"
+    if [ ! -d "$TOOLCHAIN" ]
+    then
+        script_echo "Create build-shit folder"
+        mkdir "$TOOLCHAIN"
+    fi
+    
+    if [ ! -d "$TOOLCHAIN/clang" ]
+    then
+        script_echo "Downloading toolchain...."
+        cd "$TOOLCHAIN" || exit
+        git clone https://github.com/RaghuVarma331/aarch64-linux-android-4.9.git -b master --depth=1 aarch64-linux-android-4.9 2>&1 | sed 's/^/     /'
+        git clone https://github.com/RaghuVarma331/clang.git -b android-12.0 --depth=1 clang 2>&1 | sed 's/^/     /'
+        git clone https://github.com/RaghuVarma331/arm-linux-androideabi-4.9.git -b master arm-linux-androideabi-4.9 --depth=1 2>&1 | sed 's/^/     /'
+        cd ../
+    fi
+    verify_toolchain_install
+}
+verify_toolchain_install() {
+    script_echo " "
+    if [[ -d "${TOOLCHAIN}" ]]; then
+        script_echo "I: Toolchain found at default location"
+        export PATH="${TOOLCHAIN}/aarch64-linux-android-4.9/bin:${PATH}:${TOOLCHAIN}/arm-linux-androideabi-4.9/bin:${PATH}:${TOOLCHAIN}/clang/bin:${PATH}"
+    else
+        script_echo "I: Toolchain not found"
+        script_echo "   Downloading recommended toolchain at ${TOOLCHAIN}..."
+        add_deps
+    fi
+}
+build_kernel_image() {
+    cleanup
+    script_echo " "
+    echo -e "${GRN}"
+    read -p "Write the Kernel version: " KV
+    echo -e "${YELLOW}"
+    script_echo "Building CosmicFresh Kernel For $DEVICE"
+    make -j$(($(nproc)+1)) O=out ARCH=arm64 LOCALVERSION="—CosmicFresh-$DEVICE-R$KV" $CONFIG 2>&1 | sed 's/^/     /'
+    make -j$(($(nproc)+1)) LOCALVERSION="—CosmicFresh-$DEVICE-R$KV" \
+    ARCH=arm64 \
+    CC=clang \
+    CLANG_TRIPLE=aarch64-linux-gnu- \
+    CROSS_COMPILE=aarch64-linux-android- \
+    CROSS_COMPILE_ARM32=arm-linux-androideabi- \
+    O=out | sed 's/^/     /'
+    SUCCESS=$?
+    echo -e "${RST}"
+    
+    if [ $SUCCESS -eq 0 ] && [ -f "$IMAGE" ]
+    then
+        echo -e "${GRN}"
+        script_echo "------------------------------------------------------------"
+        script_echo "Compilation successful..."
+        script_echo "Image can be found at out/arch/arm64/boot/Image.gz"
+        script_echo  "------------------------------------------------------------"
+        build_flashable_zip
+    elif [ $SUCCESS -eq 130 ]
+    then
+        echo -e "${RED}"
+        script_echo "------------------------------------------------------------"
+        script_echo "Build force stopped by the user."
+        script_echo "------------------------------------------------------------"
+        echo -e "${RST}"
+    elif [ $SUCCESS -eq 1 ]
+    then
+        echo -e "${RED}"
+        script_echo "------------------------------------------------------------"
+        script_echo "Compilation failed..check build logs for errors"
+        script_echo "------------------------------------------------------------"
+        echo -e "${RST}"
+        cleanup
+    fi
+}
+build_flashable_zip() {
+    script_echo " "
+    script_echo "I: Building kernel image..."
+    echo -e "${GRN}"
+    cp "$ORIGIN_DIR"/out/arch/arm64/boot/{Image.gz,dtbo.img} CosmicFresh/
+    cp "$ORIGIN_DIR"/out/arch/arm64/boot/dts/qcom/sdmmagpie-hanoi-base.dtb CosmicFresh/dtb
+    cd "$ORIGIN_DIR"/CosmicFresh/ || exit
+    zip -r9 "CosmicFresh-R$KV.zip" anykernel.sh META-INF tools Image.gz dtb dtbo.img
+    rm -rf {Image.gz,dtb,dtbo.img}
+    cd ../
+}
+
+cleanup() {
+    rm -rf "$ORIGIN_DIR"/out/arch/arm64/boot/{Image.gz,dt*}
+    rm -rf "$ORIGIN_DIR"/CosmicFresh/{Image.gz,*.zip,dt*}
+}
+add_deps
+export_env_vars
+build_kernel_image

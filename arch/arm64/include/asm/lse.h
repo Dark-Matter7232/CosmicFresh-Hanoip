@@ -10,7 +10,7 @@
 
 #else	/* __ASSEMBLER__ */
 
-#if defined(CONFIG_LTO_CLANG) || defined(CONFIG_LTO_GCC)
+#ifdef CONFIG_LTO_CLANG
 #define __LSE_PREAMBLE	".arch armv8-a+lse\n"
 #else
 __asm__(".arch_extension	lse");

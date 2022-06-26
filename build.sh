@@ -77,6 +77,13 @@ build_kernel_image() {
     CROSS_COMPILE=aarch64-linux-android- \
     CROSS_COMPILE_ARM32=arm-linux-androideabi- \
     O=out | sed 's/^/     /'
+    make -j$(($(nproc)+1)) dtbs dtbo.img \
+    ARCH=arm64 \
+    CC=clang \
+    CLANG_TRIPLE=aarch64-linux-gnu- \
+    CROSS_COMPILE=aarch64-linux-android- \
+    CROSS_COMPILE_ARM32=arm-linux-androideabi- \
+    O=out | sed 's/^/     /'
     SUCCESS=$?
     echo -e "${RST}"
     
@@ -112,7 +119,7 @@ build_flashable_zip() {
     cp "$ORIGIN_DIR"/out/arch/arm64/boot/{Image.gz,dtbo.img} CosmicFresh/
     cp "$ORIGIN_DIR"/out/arch/arm64/boot/dts/qcom/sdmmagpie-hanoi-base.dtb CosmicFresh/dtb
     cd "$ORIGIN_DIR"/CosmicFresh/ || exit
-    zip -r9 "CosmicFresh-R$KV.zip" anykernel.sh META-INF tools Image.gz dtb dtbo.img
+    zip -r9 "CosmicFresh-R$KV.zip" LICENSE  META-INF  README.md  anykernel.sh  modules  patch  ramdisk  tools Image.gz dtb dtbo.img
     rm -rf {Image.gz,dtb,dtbo.img}
     cd ../
 }

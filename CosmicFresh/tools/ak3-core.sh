@@ -126,7 +126,7 @@ split_boot() {
   elif [ -f "$bin/rkcrc" ]; then
     dd bs=4096 skip=8 iflag=skip_bytes conv=notrunc if=$bootimg of=ramdisk.cpio.gz;
   else
-    $bin/magiskboot unpack -n -h $bootimg 2>&1 | tee magiskboot_unpack.log;
+    $bin/magiskboot unpack -h $bootimg;
     case $? in
       1) dumpfail=1;;
       2) touch chromeos;;
@@ -237,7 +237,7 @@ repack_ramdisk() {
 
 # flash_boot (build, sign and write image only)
 flash_boot() {
-  local varlist i kernel ramdisk fdt cmdline comp part0 part1 nocompflag signfail pk8 cert avbtype header_ver;
+  local varlist i kernel ramdisk fdt cmdline comp part0 part1 nocompflag signfail pk8 cert avbtype;
 
   cd $split_img;
   if [ -f "$bin/mkimage" ]; then
@@ -309,22 +309,9 @@ flash_boot() {
     [ "$kernel" ] && cp -f $kernel kernel;
     [ "$ramdisk" ] && cp -f $ramdisk ramdisk.cpio;
     [ "$dt" -a -f extra ] && cp -f $dt extra;
-    [ "$recovery_dtbo" -a -f $recovery_dtbo ] && cp -f $recovery_dtbo recovery_dtbo;
-    if [ "$dtb" -a -f $dtb ]; then
-      case "$kernel" in
-        *Image*-dtb) :;;  # do nothing
-        *) {
-          header_ver=$(cat magiskboot_unpack.log | grep 'HEADER_VER' | sed -n 's;.*\[\(.*\)\];\1;p');
-          [ "$header_ver" -eq 2 ] && rm -f kernel_dtb;
-          if [ -f kernel_dtb ]; then
-            rm -f dtb;
-            cp -f $dtb kernel_dtb;
-          else
-            cp -f $dtb dtb;
-          fi
-        };;
-      esac;
-    fi
+    for i in dtb recovery_dtbo; do
+      [ "$(eval echo \$$i)" -a -f $i ] && cp -f $(eval echo \$$i) $i;
+    done;
     case $kernel in
       *Image*)
         if [ ! "$magisk_patched" ]; then
@@ -428,7 +415,7 @@ flash_boot() {
 
 # flash_generic <name>
 flash_generic() {
-  local file img imgblock isro path;
+  local avb avbblock file flags img imgblock isro path;
 
   cd $home;
   for file in $1 $1.img; do
@@ -451,6 +438,27 @@ flash_generic() {
       abort "$1 partition could not be found. Aborting...";
     fi;
     if [ "$path" == "/dev/block/mapper" ]; then
+      avb=$($bin/httools_static avb $1);
+      [ $? == 0 ] || abort "Failed to parse fstab entry for $1. Aborting...";
+      if [ "$avb" ]; then
+        flags=$($bin/httools_static disable-flags);
+        [ $? == 0 ] || abort "Failed to parse top-level vbmeta. Aborting...";
+        if [ "$flags" == "enabled" ]; then
+          [ "$1" == "vendor_dlkm" -a "$avb" == "vbmeta" ] || abort "Unable to patch $1 on $avb. Aborting ...";
+          ui_print " " "dm-verity detected! Patching vbmeta...";
+          for path in /dev/block/bootdevice/by-name /dev/block/mapper; do
+            for file in $avb $avb$slot; do
+              if [ -e $path/$file ]; then
+                avbblock=$path/$file;
+                break 2;
+              fi;
+            done;
+          done;
+          cd $bin;
+          $bin/httools_static patch $home/$img $avbblock || abort "Failed to patch $1 on $avb. Aborting...";
+          cd $home;
+        fi
+      fi
       $bin/lptools_static remove $1_ak3;
       $bin/lptools_static create $1_ak3 $(wc -c < $img) || abort "Creating $1_ak3 failed. Aborting...";
       $bin/lptools_static unmap $1_ak3 || abort "Unmapping $1_ak3 failed. Aborting...";
@@ -762,7 +770,7 @@ setup_ak() {
   # clean up any template placeholder files
   cd $home;
   rm -f modules/system/lib/modules/placeholder patch/placeholder ramdisk/placeholder;
-  rmdir -p modules patch ramdisk;
+  rmdir -p modules patch ramdisk 2>/dev/null;
 
   # automate simple multi-partition setup for boot_img_hdr_v3 + vendor_boot
   if [ -e "/dev/block/bootdevice/by-name/vendor_boot$slot" -a ! -f vendor_setup ] && [ -f dtb -o -d vendor_ramdisk -o -d vendor_patch ]; then

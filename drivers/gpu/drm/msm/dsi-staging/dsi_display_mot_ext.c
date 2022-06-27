@@ -43,7 +43,7 @@
 static struct dsi_mot_ext_feature *g_dsi_mot_ext = NULL;
 static int g_early_power_count = 0;
 //Timer for pressure test and debug
-static static struct alarm *g_wakeup_timer = NULL;
+static struct alarm *g_wakeup_timer = NULL;
 static int g_wakeup_timer_interval = 0;
 static int g_early_power_test_en = 0;
 

@@ -4,7 +4,5 @@ config FINGERPRINT_CHIPONE_FPS_MMI
 	default n
 	help
 	  Say Y here to enable support for Fingerprint chip TEE driver
-
 	  If unsure, say N.
-
 	  To compile this driver as a module, choose M here.

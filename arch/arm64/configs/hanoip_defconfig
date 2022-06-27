@@ -5363,6 +5363,12 @@ CONFIG_WATCHDOG_CPU_CTX=y
 CONFIG_WATCHDOGTEST=y
 
 #
+# Qualcomm RmNet extensions
+#
+CONFIG_RMNET_PERF=y
+CONFIG_RMNET_SHS=y
+
+#
 # Firmware Drivers
 #
 CONFIG_ARM_PSCI_FW=y

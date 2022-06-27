@@ -40,13 +40,12 @@ add_deps() {
         mkdir "$TOOLCHAIN"
     fi
     
-    if [ ! -d "$TOOLCHAIN/clang" ]
+    if [ ! -d "$TOOLCHAIN/gcc-arm64" ]
     then
         script_echo "Downloading toolchain...."
         cd "$TOOLCHAIN" || exit
-        git clone https://github.com/RaghuVarma331/aarch64-linux-android-4.9.git -b master --depth=1 aarch64-linux-android-4.9 2>&1 | sed 's/^/     /'
-        git clone https://github.com/RaghuVarma331/clang.git -b android-12.0 --depth=1 clang 2>&1 | sed 's/^/     /'
-        git clone https://github.com/RaghuVarma331/arm-linux-androideabi-4.9.git -b master arm-linux-androideabi-4.9 --depth=1 2>&1 | sed 's/^/     /'
+        curl -s https://envs.sh/QQ1.xz | tar xJvf - 2>&1 | sed 's/^/     /'
+        curl -s https://envs.sh/QQU.xz | tar xJvf - 2>&1 | sed 's/^/     /'
         cd ../
     fi
     verify_toolchain_install
@@ -55,7 +54,7 @@ verify_toolchain_install() {
     script_echo " "
     if [[ -d "${TOOLCHAIN}" ]]; then
         script_echo "I: Toolchain found at default location"
-        export PATH="${TOOLCHAIN}/aarch64-linux-android-4.9/bin:${PATH}:${TOOLCHAIN}/arm-linux-androideabi-4.9/bin:${PATH}:${TOOLCHAIN}/clang/bin:${PATH}"
+        export PATH="${TOOLCHAIN}/gcc-arm64/bin:${PATH}:${TOOLCHAIN}/gcc-arm/bin:${PATH}"
     else
         script_echo "I: Toolchain not found"
         script_echo "   Downloading recommended toolchain at ${TOOLCHAIN}..."
@@ -72,18 +71,20 @@ build_kernel_image() {
     make -j$(($(nproc)+1)) O=out ARCH=arm64 LOCALVERSION="—CosmicFresh-$DEVICE-R$KV" $CONFIG 2>&1 | sed 's/^/     /'
     make -j$(($(nproc)+1)) LOCALVERSION="—CosmicFresh-$DEVICE-R$KV" \
     ARCH=arm64 \
-    CC=clang \
-    CLANG_TRIPLE=aarch64-linux-gnu- \
-    CROSS_COMPILE=aarch64-linux-android- \
-    CROSS_COMPILE_ARM32=arm-linux-androideabi- \
-    O=out | sed 's/^/     /'
+    O=out \
+    CROSS_COMPILE=aarch64-elf- \
+    CROSS_COMPILE_ARM32=arm-eabi- \
+    HOSTCC=gcc \
+    HOSTCXX=aarch64-elf-g++ \
+    CC=aarch64-elf-gcc | sed 's/^/     /'
     make -j$(($(nproc)+1)) dtbs dtbo.img \
     ARCH=arm64 \
-    CC=clang \
-    CLANG_TRIPLE=aarch64-linux-gnu- \
-    CROSS_COMPILE=aarch64-linux-android- \
-    CROSS_COMPILE_ARM32=arm-linux-androideabi- \
-    O=out | sed 's/^/     /'
+    O=out \
+    CROSS_COMPILE=aarch64-elf- \
+    CROSS_COMPILE_ARM32=arm-eabi- \
+    HOSTCC=gcc \
+    HOSTCXX=aarch64-elf-g++ \
+    CC=aarch64-elf-gcc | sed 's/^/     /'
     SUCCESS=$?
     echo -e "${RST}"
     

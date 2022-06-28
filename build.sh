@@ -68,8 +68,8 @@ build_kernel_image() {
     read -p "Write the Kernel version: " KV
     echo -e "${YELLOW}"
     script_echo "Building CosmicFresh Kernel For $DEVICE"
-    make -j$(($(nproc)+1)) O=out ARCH=arm64 LOCALVERSION="—CosmicFresh-$DEVICE-R$KV" $CONFIG 2>&1 | sed 's/^/     /'
-    make -j$(($(nproc)+1)) LOCALVERSION="—CosmicFresh-$DEVICE-R$KV" \
+    make -j$(($(nproc)+1)) O=out ARCH=arm64 LOCALVERSION="—CosmicFresh-R$KV" $CONFIG 2>&1 | sed 's/^/     /'
+    make -j$(($(nproc)+1)) LOCALVERSION="—CosmicFresh-R$KV" \
     ARCH=arm64 \
     O=out \
     CROSS_COMPILE=aarch64-elf- \
@@ -120,7 +120,7 @@ build_flashable_zip() {
     cp "$ORIGIN_DIR"/out/arch/arm64/boot/{Image.gz,dtbo.img} CosmicFresh/
     cp "$ORIGIN_DIR"/out/arch/arm64/boot/dts/qcom/sdmmagpie-hanoi-base.dtb CosmicFresh/dtb
     cd "$ORIGIN_DIR"/CosmicFresh/ || exit
-    zip -r9 "CosmicFresh-R$KV.zip" LICENSE  META-INF  README.md  anykernel.sh  modules  patch  ramdisk  tools Image.gz dtb dtbo.img
+    zip -r9 "CosmicFresh-$DEVICE-R$KV.zip" LICENSE  META-INF  README.md  anykernel.sh  modules  patch  ramdisk  tools Image.gz dtb dtbo.img
     rm -rf {Image.gz,dtb,dtbo.img}
     cd ../
 }

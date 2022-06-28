@@ -44,7 +44,7 @@ static int dp_gpio_hpd_connect(struct dp_gpio_hpd_private *gpio_hpd, bool hpd)
 	int rc = 0;
 
 	if (!gpio_hpd) {
-		pr_err("invalid input\n");
+		pr_debug_once("invalid input\n");
 		rc = -EINVAL;
 		goto error;
 	}
@@ -56,7 +56,7 @@ static int dp_gpio_hpd_connect(struct dp_gpio_hpd_private *gpio_hpd, bool hpd)
 	if (!gpio_hpd->cb ||
 		!gpio_hpd->cb->configure ||
 		!gpio_hpd->cb->disconnect) {
-		pr_err("invalid cb\n");
+		pr_debug_once("invalid cb\n");
 		rc = -EINVAL;
 		goto error;
 	}
@@ -75,7 +75,7 @@ static int dp_gpio_hpd_attention(struct dp_gpio_hpd_private *gpio_hpd)
 	int rc = 0;
 
 	if (!gpio_hpd) {
-		pr_err("invalid input\n");
+		pr_debug_once("invalid input\n");
 		rc = -EINVAL;
 		goto error;
 	}
@@ -169,7 +169,7 @@ static void dp_gpio_hpd_work(struct work_struct *work)
 	}
 
 	if (ret < 0)
-		pr_err("Cannot claim IRQ dp-gpio-intp\n");
+		pr_debug_once("Cannot claim IRQ dp-gpio-intp\n");
 
 #ifdef CONFIG_MOD_DISPLAY
 	dp_bridge_connect_wait_complete();
@@ -182,7 +182,7 @@ static int dp_gpio_hpd_simulate_connect(struct dp_hpd *dp_hpd, bool hpd)
 	struct dp_gpio_hpd_private *gpio_hpd;
 
 	if (!dp_hpd) {
-		pr_err("invalid input\n");
+		pr_debug_once("invalid input\n");
 		rc = -EINVAL;
 		goto error;
 	}
@@ -200,7 +200,7 @@ static int dp_gpio_hpd_simulate_attention(struct dp_hpd *dp_hpd, int vdo)
 	struct dp_gpio_hpd_private *gpio_hpd;
 
 	if (!dp_hpd) {
-		pr_err("invalid input\n");
+		pr_debug_once("invalid input\n");
 		rc = -EINVAL;
 		goto error;
 	}
@@ -231,7 +231,7 @@ int dp_gpio_hpd_register(struct dp_hpd *dp_hpd)
 		edge | IRQF_ONESHOT,
 		"dp-gpio-intp", gpio_hpd);
 	if (rc) {
-		pr_err("Failed to request INTP threaded IRQ: %d\n", rc);
+		pr_debug_once("Failed to request INTP threaded IRQ: %d\n", rc);
 		return rc;
 	}
 
@@ -250,7 +250,7 @@ struct dp_hpd *dp_gpio_hpd_get(struct device *dev,
 	struct dp_pinctrl pinctrl = {0};
 
 	if (!dev || !cb) {
-		pr_err("invalid device\n");
+		pr_debug_once("invalid device\n");
 		rc = -EINVAL;
 		goto error;
 	}
@@ -269,7 +269,7 @@ struct dp_hpd *dp_gpio_hpd_get(struct device *dev,
 			rc = pinctrl_select_state(pinctrl.pin,
 					pinctrl.state_hpd_active);
 			if (rc) {
-				pr_err("failed to set hpd active state\n");
+				pr_debug_once("failed to set hpd active state\n");
 				goto gpio_error;
 			}
 		}
@@ -278,7 +278,7 @@ struct dp_hpd *dp_gpio_hpd_get(struct device *dev,
 	gpio_hpd->gpio_cfg.gpio = of_get_named_gpio(dev->of_node,
 		hpd_gpio_name, 0);
 	if (!gpio_is_valid(gpio_hpd->gpio_cfg.gpio)) {
-		pr_err("%s gpio not specified\n", hpd_gpio_name);
+		pr_debug_once("%s gpio not specified\n", hpd_gpio_name);
 		rc = -EINVAL;
 		goto gpio_error;
 	}
@@ -290,7 +290,7 @@ struct dp_hpd *dp_gpio_hpd_get(struct device *dev,
 	rc = gpio_request(gpio_hpd->gpio_cfg.gpio,
 		gpio_hpd->gpio_cfg.gpio_name);
 	if (rc) {
-		pr_err("%s: failed to request gpio\n", hpd_gpio_name);
+		pr_debug_once("%s: failed to request gpio\n", hpd_gpio_name);
 		goto gpio_error;
 	}
 	gpio_direction_input(gpio_hpd->gpio_cfg.gpio);

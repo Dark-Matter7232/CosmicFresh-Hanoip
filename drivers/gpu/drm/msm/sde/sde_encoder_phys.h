@@ -675,13 +675,13 @@ static inline bool _sde_encoder_phys_is_dual_ctl(
 	enum sde_rm_topology_name topology;
 
 	if (!phys_enc) {
-		pr_err("invalid phys_enc\n");
+		pr_debug_once("invalid phys_enc\n");
 		return false;
 	}
 
 	sde_kms = phys_enc->sde_kms;
 	if (!sde_kms) {
-		pr_err("invalid kms\n");
+		pr_debug_once("invalid kms\n");
 		return false;
 	}
 
@@ -701,7 +701,7 @@ static inline bool _sde_encoder_phys_is_ppsplit(
 	enum sde_rm_topology_name topology;
 
 	if (!phys_enc) {
-		pr_err("invalid phys_enc\n");
+		pr_debug_once("invalid phys_enc\n");
 		return false;
 	}
 

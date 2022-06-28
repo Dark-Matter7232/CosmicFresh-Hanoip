@@ -110,7 +110,7 @@ static void dp_ctrl_abort(struct dp_ctrl *dp_ctrl, bool reset)
 	struct dp_ctrl_private *ctrl;
 
 	if (!dp_ctrl) {
-		pr_err("Invalid input data\n");
+		pr_debug_once("Invalid input data\n");
 		return;
 	}
 
@@ -139,7 +139,7 @@ static void dp_ctrl_push_idle(struct dp_ctrl_private *ctrl,
 	}
 
 	if (strm >= DP_STREAM_MAX) {
-		pr_err("mst push idle, invalid stream:%d\n", strm);
+		pr_debug_once("mst push idle, invalid stream:%d\n", strm);
 		return;
 	}
 
@@ -256,7 +256,7 @@ static int dp_ctrl_read_link_status(struct dp_ctrl_private *ctrl,
 		len = drm_dp_dpcd_read_link_status(ctrl->aux->drm_aux,
 			link_status);
 		if (len != DP_LINK_STATUS_SIZE) {
-			pr_err("DP link status read failed, err: %d\n", len);
+			pr_debug_once("DP link status read failed, err: %d\n", len);
 			ret = len;
 			break;
 		}
@@ -324,7 +324,7 @@ static int dp_ctrl_link_train_1(struct dp_ctrl_private *ctrl)
 		if (old_v_level == ctrl->link->phy_params.v_level) {
 			tries++;
 			if (tries >= maximum_retries) {
-				pr_err("max tries reached\n");
+				pr_debug_once("max tries reached\n");
 				ret = -ETIMEDOUT;
 				break;
 			}
@@ -488,7 +488,7 @@ static int dp_ctrl_link_train(struct dp_ctrl_private *ctrl)
 
 	ret = dp_ctrl_link_train_1(ctrl);
 	if (ret) {
-		pr_err("link training #1 failed\n");
+		pr_debug_once("link training #1 failed\n");
 		goto end;
 	}
 
@@ -497,7 +497,7 @@ static int dp_ctrl_link_train(struct dp_ctrl_private *ctrl)
 
 	ret = dp_ctrl_link_training_2(ctrl);
 	if (ret) {
-		pr_err("link training #2 failed\n");
+		pr_debug_once("link training #2 failed\n");
 		goto end;
 	}
 
@@ -553,7 +553,7 @@ static void dp_ctrl_set_clock_rate(struct dp_ctrl_private *ctrl,
 	if (num)
 		cfg->rate = rate;
 	else
-		pr_err("%s clock could not be set with rate %d\n", name, rate);
+		pr_debug_once("%s clock could not be set with rate %d\n", name, rate);
 }
 
 static int dp_ctrl_enable_link_clock(struct dp_ctrl_private *ctrl)
@@ -568,7 +568,7 @@ static int dp_ctrl_enable_link_clock(struct dp_ctrl_private *ctrl)
 
 	ret = ctrl->power->clk_enable(ctrl->power, type, true);
 	if (ret) {
-		pr_err("Unabled to start link clocks\n");
+		pr_debug_once("Unabled to start link clocks\n");
 		ret = -EINVAL;
 	}
 
@@ -652,7 +652,7 @@ static int dp_ctrl_enable_stream_clocks(struct dp_ctrl_private *ctrl,
 		clk_type = DP_STREAM1_PM;
 		strlcpy(clk_name, "strm1_pixel_clk", 32);
 	} else {
-		pr_err("Invalid stream:%d for clk enable\n",
+		pr_debug_once("Invalid stream:%d for clk enable\n",
 				dp_panel->stream_id);
 		return -EINVAL;
 	}
@@ -665,7 +665,7 @@ static int dp_ctrl_enable_stream_clocks(struct dp_ctrl_private *ctrl,
 
 	ret = ctrl->power->clk_enable(ctrl->power, clk_type, true);
 	if (ret) {
-		pr_err("Unabled to start stream:%d clocks\n",
+		pr_debug_once("Unabled to start stream:%d clocks\n",
 				dp_panel->stream_id);
 		ret = -EINVAL;
 	}
@@ -685,7 +685,7 @@ static int dp_ctrl_disable_stream_clocks(struct dp_ctrl_private *ctrl,
 		return ctrl->power->clk_enable(ctrl->power,
 				DP_STREAM1_PM, false);
 	} else {
-		pr_err("Invalid stream:%d for clk disable\n",
+		pr_debug_once("Invalid stream:%d for clk disable\n",
 				dp_panel->stream_id);
 		ret = -EINVAL;
 	}
@@ -697,7 +697,7 @@ static int dp_ctrl_host_init(struct dp_ctrl *dp_ctrl, bool flip, bool reset)
 	struct dp_catalog_ctrl *catalog;
 
 	if (!dp_ctrl) {
-		pr_err("Invalid input data\n");
+		pr_debug_once("Invalid input data\n");
 		return -EINVAL;
 	}
 
@@ -728,7 +728,7 @@ static void dp_ctrl_host_deinit(struct dp_ctrl *dp_ctrl)
 	struct dp_ctrl_private *ctrl;
 
 	if (!dp_ctrl) {
-		pr_err("Invalid input data\n");
+		pr_debug_once("Invalid input data\n");
 		return;
 	}
 
@@ -750,7 +750,7 @@ static int dp_ctrl_link_maintenance(struct dp_ctrl *dp_ctrl)
 	struct dp_ctrl_private *ctrl;
 
 	if (!dp_ctrl) {
-		pr_err("Invalid input data\n");
+		pr_debug_once("Invalid input data\n");
 		return -EINVAL;
 	}
 
@@ -760,7 +760,7 @@ static int dp_ctrl_link_maintenance(struct dp_ctrl *dp_ctrl)
 	ctrl->aux->state &= ~DP_STATE_LINK_MAINTENANCE_FAILED;
 
 	if (!ctrl->power_on) {
-		pr_err("ctrl off\n");
+		pr_debug_once("ctrl off\n");
 		ret = -EINVAL;
 		goto end;
 	}
@@ -793,7 +793,7 @@ static void dp_ctrl_process_phy_test_request(struct dp_ctrl *dp_ctrl)
 	struct dp_ctrl_private *ctrl;
 
 	if (!dp_ctrl) {
-		pr_err("Invalid input data\n");
+		pr_debug_once("Invalid input data\n");
 		return;
 	}
 
@@ -821,7 +821,7 @@ static void dp_ctrl_process_phy_test_request(struct dp_ctrl *dp_ctrl)
 	ret = ctrl->dp_ctrl.on(&ctrl->dp_ctrl, ctrl->mst_mode,
 					ctrl->fec_mode, false);
 	if (ret)
-		pr_err("failed to enable DP controller\n");
+		pr_debug_once("failed to enable DP controller\n");
 
 	ctrl->dp_ctrl.stream_on(&ctrl->dp_ctrl, ctrl->panel);
 	pr_debug("end\n");
@@ -983,7 +983,7 @@ static int dp_ctrl_mst_send_act(struct dp_ctrl_private *ctrl)
 	ctrl->catalog->read_act_complete_sts(ctrl->catalog, &act_complete);
 
 	if (!act_complete)
-		pr_err("mst act trigger complete failed\n");
+		pr_debug_once("mst act trigger complete failed\n");
 	else
 		DP_MST_DEBUG("mst ACT trigger complete SUCCESS\n");
 
@@ -1062,7 +1062,7 @@ static int dp_ctrl_stream_on(struct dp_ctrl *dp_ctrl, struct dp_panel *panel)
 
 	rc = dp_ctrl_enable_stream_clocks(ctrl, panel);
 	if (rc) {
-		pr_err("failure on stream clock enable\n");
+		pr_debug_once("failure on stream clock enable\n");
 		return rc;
 	}
 
@@ -1117,7 +1117,7 @@ static void dp_ctrl_mst_stream_pre_off(struct dp_ctrl *dp_ctrl,
 	ctrl->catalog->read_act_complete_sts(ctrl->catalog, &act_complete);
 
 	if (!act_complete)
-		pr_err("mst stream_off act trigger complete failed\n");
+		pr_debug_once("mst stream_off act trigger complete failed\n");
 	else
 		DP_MST_DEBUG("mst stream_off ACT trigger complete SUCCESS\n");
 }
@@ -1128,7 +1128,7 @@ static void dp_ctrl_stream_pre_off(struct dp_ctrl *dp_ctrl,
 	struct dp_ctrl_private *ctrl;
 
 	if (!dp_ctrl || !panel) {
-		pr_err("invalid input\n");
+		pr_debug_once("invalid input\n");
 		return;
 	}
 
@@ -1239,7 +1239,7 @@ static void dp_ctrl_set_mst_channel_info(struct dp_ctrl *dp_ctrl,
 	struct dp_ctrl_private *ctrl;
 
 	if (!dp_ctrl || strm >= DP_STREAM_MAX) {
-		pr_err("invalid input\n");
+		pr_debug_once("invalid input\n");
 		return;
 	}
 
@@ -1281,7 +1281,7 @@ struct dp_ctrl *dp_ctrl_get(struct dp_ctrl_in *in)
 
 	if (!in->dev || !in->panel || !in->aux ||
 	    !in->link || !in->catalog) {
-		pr_err("invalid input\n");
+		pr_debug_once("invalid input\n");
 		rc = -EINVAL;
 		goto error;
 	}

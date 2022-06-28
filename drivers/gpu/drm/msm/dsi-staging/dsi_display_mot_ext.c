@@ -84,7 +84,7 @@ static void dsi_display_early_power_on_work(struct work_struct *work)
 
 	rc = dsi_display_prepare(display);
 	if (rc) {
-		pr_err("----- DSI display prepare failed, rc=%d. early_power_state %d\n", rc, mot_ext->early_power_state);
+		pr_debug_once("----- DSI display prepare failed, rc=%d. early_power_state %d\n", rc, mot_ext->early_power_state);
 		__pm_relax(&mot_ext->early_wake_src);
 		return;
 	}
@@ -102,7 +102,7 @@ static void dsi_display_early_power_on_work(struct work_struct *work)
 
 	rc = dsi_display_enable(display);
 	if (rc) {
-		pr_err("DSI display enable failed, rc=%d. early_power_state %d\n", rc, mot_ext->early_power_state);
+		pr_debug_once("DSI display enable failed, rc=%d. early_power_state %d\n", rc, mot_ext->early_power_state);
 		(void)dsi_display_unprepare(display);
 		return;
 	}
@@ -151,7 +151,7 @@ static void dsi_display_early_power_off_work(struct work_struct *work)
 
 	rc = dsi_display_disable(display);
 	if (rc) {
-		pr_err("DSI display disable failed, rc=%d. early_power_state %d\n", rc, mot_ext->early_power_state);
+		pr_debug_once("DSI display disable failed, rc=%d. early_power_state %d\n", rc, mot_ext->early_power_state);
 		__pm_relax(&mot_ext->early_wake_src);
 		return;
 	}
@@ -168,7 +168,7 @@ static void dsi_display_early_power_off_work(struct work_struct *work)
 
 	rc = dsi_display_unprepare(display);
 	if (rc) {
-		pr_err("DSI display unprepare failed, rc=%d. early_power_state %d\n", rc, mot_ext->early_power_state);
+		pr_debug_once("DSI display unprepare failed, rc=%d. early_power_state %d\n", rc, mot_ext->early_power_state);
 		__pm_relax(&mot_ext->early_wake_src);
 		return;
 	}
@@ -333,7 +333,7 @@ static int dsi_panel_get_cmd_pkt_count(const char *data, u32 length, u32 *cnt)
 		tmp = ((data[5] << 8) | (data[6]));
 		packet_length += tmp;
 		if (packet_length > length) {
-			pr_err("format error\n");
+			pr_debug_once("format error\n");
 			return -EINVAL;
 		}
 #if 1 //print data
@@ -545,15 +545,15 @@ static bool dsi_panel_mot_parse_commands(char* str, u32* length, struct dsi_disp
 				}
 
 			} else {
-				pr_err(" ] not found in this line!\n");
+				pr_debug_once(" ] not found in this line!\n");
 				goto error_exit;
 			}
 		} else {
-			pr_err(" [ not found in this line\n");
+			pr_debug_once(" [ not found in this line\n");
 			goto error_exit;
 		}
 	} else {
-		pr_err(" = not found in this line!\n");
+		pr_debug_once(" = not found in this line!\n");
 		goto error_exit;
 	}
 
@@ -594,15 +594,15 @@ static bool dsi_panel_mot_parse_u32(char* str, u32* val)
 				//pr_info("val str : %s\n", buf);
 				*val = my_atoi(buf);
 			} else {
-				pr_err(" > not found in this line!\n");
+				pr_debug_once(" > not found in this line!\n");
 				goto error_exit;
 			}
 		} else {
-			pr_err(" < not found in this line, please try find [\n");
+			pr_debug_once(" < not found in this line, please try find [\n");
 			goto error_exit;
 		}
 	} else {
-		pr_err(" = not found in this line!\n");
+		pr_debug_once(" = not found in this line!\n");
 		goto error_exit;
 	}
 	return true;
@@ -924,7 +924,7 @@ static ssize_t dsi_display_early_power_read(struct device *dev,
 
 	display = dev_get_drvdata(dev);
 	if (!display) {
-		pr_err("Invalid display\n");
+		pr_debug_once("Invalid display\n");
 		return -EINVAL;
 	}
 
@@ -942,12 +942,12 @@ static ssize_t dsi_display_early_power_write(struct device *dev,
 
 	display = dev_get_drvdata(dev);
 	if (!display) {
-		pr_err("Invalid display\n");
+		pr_debug_once("Invalid display\n");
 		return count;
 	}
 
 	if (display->panel->panel_initialized) {
-		pr_err("panel already initialized\n");
+		pr_debug_once("panel already initialized\n");
 		return count;
 	}
 	pr_info("%s: early_power_state %d\n", __func__,
@@ -979,7 +979,7 @@ static ssize_t dsi_display_wakup_set(struct device *dev,
 
 	display = dev_get_drvdata(dev);
 	if (!display) {
-		pr_err("Invalid display\n");
+		pr_debug_once("Invalid display\n");
 		return count;
 	}
 
@@ -996,7 +996,7 @@ static ssize_t dsi_display_wakup_set(struct device *dev,
 			alarm_init(g_wakeup_timer, ALARM_BOOTTIME, dsi_display_wakeup_timer_func);
 		}
 		else {
-			pr_err("failed to init timer\n");
+			pr_debug_once("failed to init timer\n");
 			return count;
 		}
 	}
@@ -1033,7 +1033,7 @@ static ssize_t dsi_display_early_test_en_set(struct device *dev,
 
 	display = dev_get_drvdata(dev);
 	if (!display) {
-		pr_err("Invalid display\n");
+		pr_debug_once("Invalid display\n");
 		return count;
 	}
 
@@ -1091,7 +1091,7 @@ static ssize_t dsi_display_parse_para_get(struct device *dev,
 
 	display = dev_get_drvdata(dev);
 	if (!display) {
-		pr_err("Invalid display\n");
+		pr_debug_once("Invalid display\n");
 		return rc;
 	}
 	display_mode = &display->modes[index];
@@ -1132,7 +1132,7 @@ static ssize_t dsi_display_parse_para_update(struct device *dev,
 
 	display = dev_get_drvdata(dev);
 	if (!display) {
-		pr_err("Invalid display\n");
+		pr_debug_once("Invalid display\n");
 		return count;
 	}
 
@@ -1205,7 +1205,7 @@ int dsi_display_ext_init(struct dsi_display *display)
 	g_dsi_mot_ext->early_power_state = DSI_EARLY_POWER_STATE_NUM;
 	g_dsi_mot_ext->early_power_workq = create_singlethread_workqueue("dsi_early_power_workq");
 	if (!g_dsi_mot_ext->early_power_workq) {
-		pr_err("failed to create dsi early power workq!\n");
+		pr_debug_once("failed to create dsi early power workq!\n");
 		dsi_display_sysfs_ext_deinit(display);
 		return 0;
 	}

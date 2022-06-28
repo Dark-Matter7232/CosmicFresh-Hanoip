@@ -1459,7 +1459,7 @@ static u32 _sde_crtc_get_displays_affected(struct drm_crtc *crtc,
 	bool is_ppsplit = false;
 
 	if (!crtc || !state) {
-		pr_err("Invalid crtc or state\n");
+		pr_debug_once("Invalid crtc or state\n");
 		return 0;
 	}
 
@@ -5588,7 +5588,7 @@ int sde_crtc_get_num_datapath(struct drm_crtc *crtc,
 	struct drm_connector_list_iter conn_iter;
 
 	if (!sde_crtc || !connector) {
-		pr_err("DEBUG %p %p \n", sde_crtc, connector);
+		pr_debug_once("DEBUG %p %p \n", sde_crtc, connector);
 		return 0;
 	}
 
@@ -5606,7 +5606,7 @@ int sde_crtc_get_num_datapath(struct drm_crtc *crtc,
 	if (sde_conn_state)
 	return sde_conn_state->mode_info.topology.num_lm;
 
-	pr_err("DEBUG sde_conn_state %p \n", sde_conn_state);
+	pr_debug_once("DEBUG sde_conn_state %p \n", sde_conn_state);
 	return 0;
 }
 

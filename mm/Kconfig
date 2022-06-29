@@ -851,3 +851,9 @@ config FORCE_ALLOC_FROM_DMA_ZONE
 	  always using ZONE_DMA memory.
 
 	  If unsure, say "n".
+
+config OPLUS_MM_HACKS
+	bool "oplus mm  hacks"
+	default y
+	help
+	oplus mm hacks

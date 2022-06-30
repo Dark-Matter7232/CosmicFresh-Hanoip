@@ -40,16 +40,6 @@
 #define __func__ MAX310X_NAME
 #endif
 
-#undef dev_info
-#undef dev_dbg
-#define dev_info dev_err
-#define dev_dbg dev_err
-
-#undef pr_info
-#undef pr_debug
-#define pr_info pr_err
-#define pr_debug pr_err
-
 /* MAX310X register definitions */
 #define MAX310X_RHR_REG			(0x00) /* RX FIFO */
 #define MAX310X_THR_REG			(0x00) /* TX FIFO */

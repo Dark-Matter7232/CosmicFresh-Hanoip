@@ -95,6 +95,7 @@ build_kernel_image() {
     else
         echo -e "${GRN}"
         echo "Building FPC variant"
+        FP_MODEL="FPC"
         echo -e "${YELLOW}"
     fi
 
@@ -124,7 +125,7 @@ build_kernel_image() {
     then
         echo -e "${RED}"
         script_echo "------------------------------------------------------------"
-        script_echo "Compilation failed..check build logs for errors"
+        script_echo "Compilation failed.."
         script_echo "------------------------------------------------------------"
         echo -e "${RST}"
         cleanup

@@ -12,12 +12,21 @@ TOOLCHAIN=$ORIGIN_DIR/build-shit
 IMAGE=$ORIGIN_DIR/out/arch/arm64/boot/Image.gz
 DEVICE=hanoip
 CONFIG="${DEVICE}_defconfig"
-FP_MODEL="$*"
-CPO+=(
+VARIANT="$*"
+BUILD4GB+=(
     ./scripts/config \
         --file "$ORIGIN_DIR"/out/.config \
-        -d FINGERPRINT_FPC_TEE_MMI \
-        -e FINGERPRINT_CHIPONE_FPS_MMI
+        --set-val ZRAM_DISKSIZE 1908 \
+        --set-val ANDROID_SIMPLE_LMK_MINFREE 128 \
+        --set-val ANDROID_SIMPLE_LMK_TIMEOUT_MSEC 200 \
+        -e OPLUS_MM_HACKS
+)
+CONST+=(
+    ./scripts/config \
+        --file "$ORIGIN_DIR"/out/.config \
+        -d MODULES \
+        -d FINGERPRINT_CHIPONE_FPS_MMI \
+        -e FINGERPRINT_FPC_TEE_MMI
 )
 MAKE+=(
     -j$(($(nproc)+1)) \
@@ -26,7 +35,8 @@ MAKE+=(
         CROSS_COMPILE_ARM32=arm-eabi- \
         HOSTCC=gcc \
         HOSTCXX=aarch64-elf-g++ \
-        CC=aarch64-elf-gcc
+        CC=aarch64-elf-gcc \
+        LD=ld.lld
 )
 
 # export environment variables
@@ -87,15 +97,21 @@ build_kernel_image() {
 
     make "${MAKE[@]}" LOCALVERSION="—CosmicFresh-R$KV" $CONFIG 2>&1 | sed 's/^/     /'
 
-    if [ "$FP_MODEL" = "CPO" ]; then
+    if [ "$VARIANT" = "4GB" ]; then
         echo -e "${GRN}"
-        script_echo "Building Chipone variant"
-        "${CPO[@]}"
+        script_echo "Building 4GB variant"
+        "${BUILD4GB[@]}"
+        echo -e "${YELLOW}"
+    elif [ "$VARIANT" = "Const" ]; then
+        echo -e "${GRN}"
+        echo "Building Personal variant"
+        VARIANT="6GB-Const"
+        "${CONST[@]}"
         echo -e "${YELLOW}"
     else
         echo -e "${GRN}"
-        echo "Building FPC variant"
-        FP_MODEL="FPC"
+        echo "Building 6GB variant"
+        VARIANT="6GB"
         echo -e "${YELLOW}"
     fi
 
@@ -138,7 +154,7 @@ build_flashable_zip() {
     cp "$ORIGIN_DIR"/out/arch/arm64/boot/{Image.gz,dtbo.img} CosmicFresh/
     cp "$ORIGIN_DIR"/out/arch/arm64/boot/dts/qcom/sdmmagpie-hanoi-base.dtb CosmicFresh/dtb
     cd "$ORIGIN_DIR"/CosmicFresh/ || exit
-    zip -r9 "CosmicFresh-$DEVICE-$FP_MODEL-R$KV.zip" LICENSE  META-INF version README.md  anykernel.sh  modules  patch  ramdisk  tools Image.gz dtb dtbo.img
+    zip -r9 "CosmicFresh-$DEVICE-$VARIANT-R$KV.zip" META-INF version anykernel.sh tools Image.gz dtb dtbo.img
     rm -rf {Image.gz,dtb,dtbo.img}
     cd ../
 }

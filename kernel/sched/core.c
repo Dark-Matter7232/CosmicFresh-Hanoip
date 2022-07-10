@@ -5216,7 +5216,6 @@ int __sched _cond_resched(void)
 		preempt_schedule_common();
 		return 1;
 	}
-	rcu_all_qs();
 	return 0;
 }
 EXPORT_SYMBOL(_cond_resched);
@@ -5540,7 +5539,6 @@ void sched_show_task(struct task_struct *p)
 	show_stack(p, NULL);
 	put_task_stack(p);
 }
-EXPORT_SYMBOL_GPL(sched_show_task);
 
 static inline bool
 state_filter_match(unsigned long state_filter, struct task_struct *p)
@@ -6324,6 +6322,10 @@ int sched_cpu_deactivate(unsigned int cpu)
 	 *
 	 * Do sync before park smpboot threads to take care the rcu boost case.
 	 */
+
+#ifdef CONFIG_PREEMPT
+	synchronize_sched();
+#endif
 	synchronize_rcu();
 
 #ifdef CONFIG_SCHED_SMT

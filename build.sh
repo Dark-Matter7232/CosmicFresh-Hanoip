@@ -18,8 +18,7 @@ BUILD4GB+=(
         --file "$ORIGIN_DIR"/out/.config \
         --set-val ZRAM_DISKSIZE 1908 \
         --set-val ANDROID_SIMPLE_LMK_MINFREE 128 \
-        --set-val ANDROID_SIMPLE_LMK_TIMEOUT_MSEC 200 \
-        -e OPLUS_MM_HACKS
+        --set-val ANDROID_SIMPLE_LMK_TIMEOUT_MSEC 200
 )
 CPO+=(
     ./scripts/config \

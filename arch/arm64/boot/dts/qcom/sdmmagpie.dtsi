@@ -1066,11 +1066,6 @@
 		mbox-names = "aop";
 	};
 
-	qcom,msm-rtb {
-		compatible = "qcom,msm-rtb";
-		qcom,rtb-size = <0x100000>;
-	};
-
 	gpi_dma0: qcom,gpi-dma@0x800000 {
 		#dma-cells = <5>;
 		compatible = "qcom,gpi-dma";

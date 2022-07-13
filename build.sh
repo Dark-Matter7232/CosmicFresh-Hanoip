@@ -13,13 +13,6 @@ IMAGE=$ORIGIN_DIR/out/arch/arm64/boot/Image.gz
 DEVICE=hanoip
 CONFIG="${DEVICE}_defconfig"
 FP_MODEL="$*"
-BUILD4GB+=(
-    ./scripts/config \
-        --file "$ORIGIN_DIR"/out/.config \
-        --set-val ZRAM_DISKSIZE 1908 \
-        --set-val ANDROID_SIMPLE_LMK_MINFREE 128 \
-        --set-val ANDROID_SIMPLE_LMK_TIMEOUT_MSEC 200
-)
 CPO+=(
     ./scripts/config \
         --file "$ORIGIN_DIR"/out/.config \
@@ -96,29 +89,13 @@ build_kernel_image() {
     make "${MAKE[@]}" LOCALVERSION="—CosmicFresh-R$KV" $CONFIG 2>&1 | sed 's/^/     /'
 
     script_echo " "
-    echo -e "${GRN}"
-    read -p "Enter ram model: " RM
     script_echo " "
     if [ "$FP_MODEL" = "CPO" ]; then
         "${CPO[@]}"
-        if [ "$RM" == "4GB" ]; then
-            script_echo "Building CPO-4GB"
-            RAM_MODEL="4GB"
-            "${BUILD4GB[@]}"
-        else
-            script_echo "Building CPO-6GB"
-            RAM_MODEL="6GB"
-        fi
+        script_echo "Building CPO"
     else
         FP_MODEL="FPC"
-        if [ "$RM" == "4GB" ]; then
-            script_echo "Building FPC-4GB"
-            RAM_MODEL="4GB"
-            "${BUILD4GB[@]}"
-        else
-            script_echo "Building FPC-6GB"
-            RAM_MODEL="6GB"
-        fi
+        script_echo "Building FPC"
     fi
     echo -e "${YELLOW}"
 
@@ -161,7 +138,7 @@ build_flashable_zip() {
     cp "$ORIGIN_DIR"/out/arch/arm64/boot/{Image.gz,dtbo.img} CosmicFresh/
     cp "$ORIGIN_DIR"/out/arch/arm64/boot/dts/qcom/sdmmagpie-hanoi-base.dtb CosmicFresh/dtb
     cd "$ORIGIN_DIR"/CosmicFresh/ || exit
-    zip -r9 "CosmicFresh-R$KV-$FP_MODEL-$RAM_MODEL.zip" META-INF version anykernel.sh tools Image.gz dtb dtbo.img
+    zip -r9 "CosmicFresh-R$KV-$FP_MODEL.zip" META-INF version anykernel.sh tools Image.gz dtb dtbo.img
     rm -rf {Image.gz,dtb,dtbo.img}
     cd ../
 }

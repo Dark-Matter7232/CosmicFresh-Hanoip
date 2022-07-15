@@ -883,10 +883,6 @@ config OPLUS_MM_HACKS
 	help
 	oplus mm hacks
 
-config VMSTAT_INTERVAL
-	int "Default interval in seconds to update vmstat"
-	default 1
-
 config MULTIPLE_KSWAPD
 	bool "Spawn multiple kswapd threads"
 	default y

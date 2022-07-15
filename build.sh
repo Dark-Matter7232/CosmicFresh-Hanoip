@@ -61,8 +61,8 @@ add_deps() {
     then
         script_echo "Downloading toolchain...."
         cd "$TOOLCHAIN" || exit
-        git clone https://github.com/mvaisakh/gcc-arm64.git --single-branch -b gcc-master --depth=1 2>&1 | sed 's/^/     /'
-        git clone https://github.com/mvaisakh/gcc-arm.git --single-branch -b gcc-master --depth=1 2>&1 | sed 's/^/     /'
+        git clone https://github.com/KenHV/gcc-arm64.git --single-branch -b master --depth=1 2>&1 | sed 's/^/     /'
+        git clone https://github.com/KenHV/gcc-arm.git --single-branch -b master --depth=1 2>&1 | sed 's/^/     /'
         cd ../
     fi
     verify_toolchain_install

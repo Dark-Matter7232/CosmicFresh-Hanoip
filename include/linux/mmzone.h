@@ -36,7 +36,7 @@
  */
 #define PAGE_ALLOC_COSTLY_ORDER 3
 
-#define MAX_KSWAPD_THREADS 6
+#define MAX_KSWAPD_THREADS 8
 
 enum migratetype {
 	MIGRATE_UNMOVABLE,

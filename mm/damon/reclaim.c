@@ -33,9 +33,9 @@ static bool enabled __read_mostly = true;
  * Time threshold for cold memory regions identification in microseconds.
  *
  * If a memory region is not accessed for this or longer time, DAMON_RECLAIM
- * identifies the region as cold, and reclaims.  30 seconds by default.
+ * identifies the region as cold, and reclaims.  60 seconds by default.
  */
-static unsigned long min_age __read_mostly = 30000000;
+static unsigned long min_age __read_mostly = 60000000;
 module_param(min_age, ulong, 0600);
 
 /*

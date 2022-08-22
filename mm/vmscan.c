@@ -154,13 +154,21 @@ struct scan_control {
 #define prefetchw_prev_lru_page(_page, _base, _field) do { } while (0)
 #endif
 
+#ifdef CONFIG_OPLUS_MM_HACKS
+/*
+ * From 0 .. 200.  Higher means more swappy.
+ */
+int vm_swappiness = 160;
+#else
 /*
  * From 0 .. 100.  Higher means more swappy.
  */
 int vm_swappiness = 60;
+#endif /*CONFIG_OPLUS_MM_HACKS*/
+
 #ifdef CONFIG_OPLUS_MM_HACKS
 /*
- * Direct reclaim swappiness, exptct 0 - 60. Higher means more swappy and slower.
+ * Direct reclaim swappiness, exptct 0 - 200. Higher means more swappy and slower.
  */
 int direct_vm_swappiness = 60;
 #endif /*CONFIG_OPLUS_MM_HACKS*/

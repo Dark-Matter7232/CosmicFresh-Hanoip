@@ -122,7 +122,7 @@ static inline int linux_test(const char* path)
 static void dalvikvm_set(void) {
 	struct sysinfo i;
 	si_meminfo(&i);
-	if (i.totalram > 4096ull * 1024 * 1024) {
+	if (i.totalram << (PAGE_SHIFT-10) > 4096ull * 1024) {
 		// from - phone-xhdpi-6144-dalvik-heap.mk
 		linux_write("dalvik.vm.heapstartsize", "16m", false);
 		linux_write("dalvik.vm.heapgrowthlimit", "256m", false);

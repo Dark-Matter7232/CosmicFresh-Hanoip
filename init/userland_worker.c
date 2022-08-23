@@ -111,24 +111,18 @@ static inline int linux_sh(const char* command)
 static void dalvikvm_set(void) {
 	struct sysinfo i;
 	si_meminfo(&i);
-	if (i.totalram > 8192ull * 1024 * 1024) {
-		// from - phone-xhdpi-12288-dalvik-heap.mk
-		linux_write("dalvik.vm.heapstartsize", "24m", false);
-		linux_write("dalvik.vm.heapgrowthlimit", "384m", false);
-		linux_write("dalvik.vm.heaptargetutilization", "0.42", false);
-		linux_write("dalvik.vm.heapmaxfree", "56m", false);
-	} else if (i.totalram > 6144ull * 1024 * 1024) {
-		// from - phone-xhdpi-8192-dalvik-heap.mk
-		linux_write("dalvik.vm.heapstartsize", "24m", false);
-		linux_write("dalvik.vm.heapgrowthlimit", "256m", false);
-		linux_write("dalvik.vm.heaptargetutilization", "0.46", false);
-		linux_write("dalvik.vm.heapmaxfree", "48m", false);
-	} else {
+	if (i.totalram > 4096ull * 1024 * 1024) {
 		// from - phone-xhdpi-6144-dalvik-heap.mk
 		linux_write("dalvik.vm.heapstartsize", "16m", false);
 		linux_write("dalvik.vm.heapgrowthlimit", "256m", false);
 		linux_write("dalvik.vm.heaptargetutilization", "0.5", false);
 		linux_write("dalvik.vm.heapmaxfree", "32m", false);
+	} else {
+		// from - phone-xhdpi-4096-dalvik-heap.mk
+		linux_write("dalvik.vm.heapstartsize", "8m", false);
+		linux_write("dalvik.vm.heapgrowthlimit", "192m", false);
+		linux_write("dalvik.vm.heaptargetutilization", "0.6", false);
+		linux_write("dalvik.vm.heapmaxfree", "16m", false);
 	}
 	linux_write("dalvik.vm.heapsize", "512m", false);
 	linux_write("dalvik.vm.heapminfree", "8m", false);

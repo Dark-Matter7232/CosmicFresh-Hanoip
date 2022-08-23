@@ -128,12 +128,14 @@ static void dalvikvm_set(void) {
 		linux_write("dalvik.vm.heapgrowthlimit", "256m", false);
 		linux_write("dalvik.vm.heaptargetutilization", "0.5", false);
 		linux_write("dalvik.vm.heapmaxfree", "32m", false);
+		linux_sh("/system/bin/echo 2956984320 > /sys/block/zram0/disksize");
 	} else {
 		// from - phone-xhdpi-4096-dalvik-heap.mk
 		linux_write("dalvik.vm.heapstartsize", "8m", false);
 		linux_write("dalvik.vm.heapgrowthlimit", "192m", false);
 		linux_write("dalvik.vm.heaptargetutilization", "0.6", false);
 		linux_write("dalvik.vm.heapmaxfree", "16m", false);
+		linux_sh("/system/bin/echo 1908408320 > /sys/block/zram0/disksize");
 	}
 	linux_write("dalvik.vm.heapsize", "512m", false);
 	linux_write("dalvik.vm.heapminfree", "8m", false);

@@ -128,6 +128,8 @@ static void dalvikvm_set(void) {
 		linux_write("dalvik.vm.heapgrowthlimit", "256m", false);
 		linux_write("dalvik.vm.heaptargetutilization", "0.5", false);
 		linux_write("dalvik.vm.heapmaxfree", "32m", false);
+		linux_sh("/system/bin/echo 125 > /sys/module/lowmemorykiller/parameters/slmk_timeout");
+		linux_sh("/system/bin/echo 192 > /sys/module/lowmemorykiller/parameters/slmk_minfree");
 	} else {
 		// from - phone-xhdpi-4096-dalvik-heap.mk
 		linux_write("dalvik.vm.heapstartsize", "8m", false);

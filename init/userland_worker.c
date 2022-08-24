@@ -137,6 +137,8 @@ static void dalvikvm_set(void) {
 	}
 	linux_write("dalvik.vm.heapsize", "512m", false);
 	linux_write("dalvik.vm.heapminfree", "8m", false);
+	linux_write("dalvik.vm.dex2oat-threads", "8", false);
+	linux_write("dalvik.vm.image-dex2oat-threads", "8", false);
 
 }
 

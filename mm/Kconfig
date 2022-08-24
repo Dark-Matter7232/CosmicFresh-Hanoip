@@ -882,7 +882,3 @@ config OPLUS_MM_HACKS
 	default y
 	help
 	oplus mm hacks
-
-config VMSTAT_INTERVAL
-	int "Default interval in seconds to update vmstat"
-	default 1

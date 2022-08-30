@@ -876,9 +876,3 @@ config LRU_GEN_STATS
 
 	  This option has a per-memcg and per-node memory overhead.
 # }
-
-config OPLUS_MM_HACKS
-	bool "oplus mm  hacks"
-	default y
-	help
-	oplus mm hacks

@@ -852,12 +852,6 @@ config FORCE_ALLOC_FROM_DMA_ZONE
 
 	  If unsure, say "n".
 
-config OPLUS_MM_HACKS
-	bool "oplus mm  hacks"
-	default y
-	help
-	oplus mm hacks
-
 config VMSTAT_INTERVAL
 	int "Default interval in seconds to update vmstat"
 	default 1

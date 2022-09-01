@@ -12,6 +12,7 @@
 #include <linux/slab.h>
 #include <uapi/linux/sched/types.h>
 #include <linux/moduleparam.h>
+#include <linux/sched.h>
 
 enum {
 	SCREEN_OFF,
@@ -209,10 +210,16 @@ static int msm_drm_notifier_cb(struct notifier_block *nb,
 		struct boost_dev *b = &d->devices[i];
 
 		if (*blank == MSM_DRM_BLANK_UNBLANK) {
+			do_prefer_idle("top-app", 1);
+			do_prefer_idle("foreground", 1);
+
 			clear_bit(SCREEN_OFF, &b->state);
 			__devfreq_boost_kick_max(b,
 				CONFIG_DEVFREQ_WAKE_BOOST_DURATION_MS);
 		} else {
+			do_prefer_idle("top-app", 0);
+			do_prefer_idle("foreground", 0);
+
 			set_bit(SCREEN_OFF, &b->state);
 			wake_up(&b->boost_waitq);
 		}

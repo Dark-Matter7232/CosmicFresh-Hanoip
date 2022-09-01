@@ -696,7 +696,7 @@ static int prefer_high_cap_write(struct cgroup_subsys_state *css,
 static int boost_write_wrapper(struct cgroup_subsys_state *css,
 			       struct cftype *cft, s64 boost)
 {
-	if (task_is_booster(current))
+	if (!strcmp(current->comm, "init"))
 		return 0;
 
 	return boost_write(css, cft, boost);
@@ -705,7 +705,7 @@ static int boost_write_wrapper(struct cgroup_subsys_state *css,
 static int prefer_idle_write_wrapper(struct cgroup_subsys_state *css,
 				     struct cftype *cft, u64 prefer_idle)
 {
-	if (task_is_booster(current))
+	if (!strcmp(current->comm, "init"))
 		return 0;
 
 	return prefer_idle_write(css, cft, prefer_idle);

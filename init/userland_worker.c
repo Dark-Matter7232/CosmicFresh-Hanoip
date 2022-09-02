@@ -128,7 +128,6 @@ static void dalvikvm_set(void) {
 		linux_write("dalvik.vm.heapgrowthlimit", "256m", false);
 		linux_write("dalvik.vm.heaptargetutilization", "0.5", false);
 		linux_write("dalvik.vm.heapmaxfree", "32m", false);
-		linux_sh("/system/bin/echo 4294967296 > /sys/devices/virtual/block/vbswap0/disksize");
 		linux_sh("/system/bin/echo 170 > /proc/sys/vm/rswappiness");
 	} else {
 		// from - phone-xhdpi-4096-dalvik-heap.mk
@@ -136,13 +135,13 @@ static void dalvikvm_set(void) {
 		linux_write("dalvik.vm.heapgrowthlimit", "192m", false);
 		linux_write("dalvik.vm.heaptargetutilization", "0.6", false);
 		linux_write("dalvik.vm.heapmaxfree", "16m", false);
-		linux_sh("/system/bin/echo 5294967296 > /sys/devices/virtual/block/vbswap0/disksize");
-		linux_sh("/system/bin/echo 190 > /proc/sys/vm/rswappiness");
+		linux_sh("/system/bin/echo 180 > /proc/sys/vm/rswappiness");
 	}
 	linux_write("dalvik.vm.heapsize", "512m", false);
 	linux_write("dalvik.vm.heapminfree", "8m", false);
 	linux_write("dalvik.vm.dex2oat-threads", "8", false);
 	linux_write("dalvik.vm.image-dex2oat-threads", "8", false);
+	linux_sh("/system/bin/echo 4294967296 > /sys/devices/virtual/block/vbswap0/disksize");
 	linux_sh("/system/bin/mkswap /dev/block/vbswap0");
 	linux_sh("/system/bin/swapon /dev/block/vbswap0");
 

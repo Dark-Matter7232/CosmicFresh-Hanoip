@@ -141,7 +141,7 @@ static void dalvikvm_set(void) {
 	linux_write("dalvik.vm.heapminfree", "8m", false);
 	linux_write("dalvik.vm.dex2oat-threads", "8", false);
 	linux_write("dalvik.vm.image-dex2oat-threads", "8", false);
-	linux_sh("/system/bin/echo 4294967296 > /sys/devices/virtual/block/vbswap0/disksize");
+	linux_sh("/system/bin/echo 3758096384 > /sys/devices/virtual/block/vbswap0/disksize");
 	linux_sh("/system/bin/mkswap /dev/block/vbswap0");
 	linux_sh("/system/bin/swapon /dev/block/vbswap0");
 

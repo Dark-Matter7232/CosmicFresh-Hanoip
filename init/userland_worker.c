@@ -119,29 +119,20 @@ static inline int linux_test(const char* path)
 	return use_userspace(argv);
 }
 
-static void dalvikvm_set(void) {
+static void config_set(void) {
 	struct sysinfo i;
 	si_meminfo(&i);
 	if (i.totalram << (PAGE_SHIFT-10) > 4096ull * 1024) {
-		// from - phone-xhdpi-6144-dalvik-heap.mk
-		linux_write("dalvik.vm.heapstartsize", "16m", false);
-		linux_write("dalvik.vm.heapgrowthlimit", "256m", false);
-		linux_write("dalvik.vm.heaptargetutilization", "0.5", false);
-		linux_write("dalvik.vm.heapmaxfree", "32m", false);
-		linux_sh("/system/bin/echo 170 > /proc/sys/vm/rswappiness");
-	} else {
-		// from - phone-xhdpi-4096-dalvik-heap.mk
-		linux_write("dalvik.vm.heapstartsize", "8m", false);
-		linux_write("dalvik.vm.heapgrowthlimit", "192m", false);
-		linux_write("dalvik.vm.heaptargetutilization", "0.6", false);
-		linux_write("dalvik.vm.heapmaxfree", "16m", false);
 		linux_sh("/system/bin/echo 180 > /proc/sys/vm/rswappiness");
+		linux_sh("/system/bin/echo 3758096384 > /sys/devices/virtual/block/vbswap0/disksize");
+		linux_sh("/system/bin/echo z3fold > /sys/module/zswap/parameters/zpool");
+	} else {
+		linux_sh("/system/bin/echo 190 > /proc/sys/vm/rswappiness");
+		linux_sh("/system/bin/echo 4294967296 > /sys/devices/virtual/block/vbswap0/disksize");
+		linux_sh("/system/bin/echo zsmalloc > /sys/module/zswap/parameters/zpool");
 	}
-	linux_write("dalvik.vm.heapsize", "512m", false);
-	linux_write("dalvik.vm.heapminfree", "8m", false);
 	linux_write("dalvik.vm.dex2oat-threads", "8", false);
 	linux_write("dalvik.vm.image-dex2oat-threads", "8", false);
-	linux_sh("/system/bin/echo 3758096384 > /sys/devices/virtual/block/vbswap0/disksize");
 	linux_sh("/system/bin/mkswap /dev/block/vbswap0");
 	linux_sh("/system/bin/swapon /dev/block/vbswap0");
 
@@ -169,7 +160,7 @@ static void userland_worker(struct work_struct *work)
 
   	msleep(DELAY);
 
-	dalvikvm_set();
+	config_set();
 
 	set_kernel_module_params();
 

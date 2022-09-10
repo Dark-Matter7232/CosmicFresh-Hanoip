@@ -288,6 +288,35 @@ err:
 	return IRQ_HANDLED;
 }
 
+/*
+ * The following power levels should be safe to use with Joule board.
+ */
+static const u32 src_pdo[] = {
+	PDO_FIXED(5000, 1500, PDO_FIXED_DUAL_ROLE | PDO_FIXED_DATA_SWAP |
+		  PDO_FIXED_USB_COMM),
+};
+
+static const u32 snk_pdo[] = {
+	PDO_FIXED(5000, 500, PDO_FIXED_DUAL_ROLE | PDO_FIXED_DATA_SWAP |
+		  PDO_FIXED_USB_COMM),
+};
+
+static struct tcpc_config wcove_typec_config = {
+	.src_pdo = src_pdo,
+	.nr_src_pdo = ARRAY_SIZE(src_pdo),
+	.snk_pdo = snk_pdo,
+	.nr_snk_pdo = ARRAY_SIZE(snk_pdo),
+
+	.max_snk_mv = 12000,
+	.max_snk_ma = 3000,
+	.max_snk_mw = 36000,
+	.operating_snk_mw = 15000,
+
+	.type = TYPEC_PORT_DRP,
+	.data = TYPEC_PORT_DRD,
+	.default_role = TYPEC_SINK,
+};
+
 static int wcove_typec_probe(struct platform_device *pdev)
 {
 	struct intel_soc_pmic *pmic = dev_get_drvdata(pdev->dev.parent);

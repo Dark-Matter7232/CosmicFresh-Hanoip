@@ -23,7 +23,6 @@
 #include <linux/regulator/driver.h>
 #include <linux/regulator/consumer.h>
 #include <linux/extcon.h>
-#include <linux/usb/class-dual-role.h>
 #include "storm-watch.h"
 #include "battery.h"
 #include <linux/alarmtimer.h>
@@ -85,7 +84,6 @@ enum print_reason {
 #define CHG_TERMINATION_VOTER		"CHG_TERMINATION_VOTER"
 #define THERMAL_THROTTLE_VOTER		"THERMAL_THROTTLE_VOTER"
 #define VOUT_VOTER			"VOUT_VOTER"
-#define DR_SWAP_VOTER			"DR_SWAP_VOTER"
 #define USB_SUSPEND_VOTER		"USB_SUSPEND_VOTER"
 #define CHARGER_TYPE_VOTER		"CHARGER_TYPE_VOTER"
 #define HDC_IRQ_VOTER			"HDC_IRQ_VOTER"
@@ -120,8 +118,6 @@ enum print_reason {
 #define DCIN_ICL_MIN_UA			100000
 #define DCIN_ICL_MAX_UA			1500000
 #define DCIN_ICL_STEP_UA		100000
-
-#define ROLE_REVERSAL_DELAY_MS		2000
 
 enum smb_mode {
 	PARALLEL_MASTER = 0,
@@ -539,7 +535,6 @@ struct smb_charger {
 	/* locks */
 	struct mutex		smb_lock;
 	struct mutex		ps_change_lock;
-	struct mutex		dr_lock;
 	struct mutex		irq_status_lock;
 	struct mutex		adc_lock;
 	spinlock_t		typec_pr_lock;
@@ -557,9 +552,6 @@ struct smb_charger {
 	struct power_supply		*wls_psy;
 	struct power_supply		*cp_psy;
 	enum power_supply_type		real_charger_type;
-
-	/* dual role class */
-	struct dual_role_phy_instance	*dual_role;
 
 	/* notifiers */
 	struct notifier_block	nb;
@@ -611,7 +603,6 @@ struct smb_charger {
 	struct delayed_work	lpd_detach_work;
 	struct delayed_work	thermal_regulation_work;
 	struct delayed_work	usbov_dbc_work;
-	struct delayed_work	role_reversal_check;
 	struct delayed_work	pr_swap_detach_work;
 	struct delayed_work	pr_lock_clear_work;
 
@@ -714,7 +705,6 @@ struct smb_charger {
 	int			charge_full_cc;
 	int			cc_soc_ref;
 	int			last_cc_soc;
-	int			dr_mode;
 	int			term_vbat_uv;
 	int			usbin_forced_max_uv;
 	int			init_thermal_ua;
@@ -973,7 +963,6 @@ int smblib_get_prop_pr_swap_in_progress(struct smb_charger *chg,
 				union power_supply_propval *val);
 int smblib_set_prop_pr_swap_in_progress(struct smb_charger *chg,
 				const union power_supply_propval *val);
-int smblib_force_dr_mode(struct smb_charger *chg, int mode);
 int smblib_get_prop_from_bms(struct smb_charger *chg,
 				enum power_supply_property psp,
 				union power_supply_propval *val);

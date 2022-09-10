@@ -6,7 +6,7 @@
  * Author: Heikki Krogerus <heikki.krogerus@linux.intel.com>
  */
 
-#include <linux/usb/pd_vdo.h>
+#include "../../staging/typec/pd_vdo.h"
 
 #include "bus.h"
 

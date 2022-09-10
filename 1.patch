@@ -1,0 +1,39 @@
+From 2e7e998ba7a675d02d1c3747f14defddf615ecca Mon Sep 17 00:00:00 2001
+From: Shaokun Zhang <zhangshaokun@hisilicon.com>
+Date: Tue, 30 Apr 2019 17:57:29 +0800
+Subject: [PATCH] BACKPORT: cgroup: Remove unused cgrp variable
+
+The 'cgrp' is set but not used in commit <76f969e8948d8>
+("cgroup: cgroup v2 freezer").
+Remove it to avoid [-Wunused-but-set-variable] warning.
+
+Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Shaokun Zhang <zhangshaokun@hisilicon.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+(cherry picked from 533307dc20a9e84a0687d4ca24aeb669516c0243)
+Bug: 154548692
+Signed-off-by: Marco Ballesio <balejs@google.com>
+Change-Id: I6221a975c04f06249a4f8d693852776ae08a8d8e
+(cherry picked from commit 16824e5cf17313cbc2f67d4547446ddaa4f05258)
+Signed-off-by: Panchajanya1999 <panchajanya@azure-dev.live>
+---
+ kernel/cgroup/cgroup.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/kernel/cgroup/cgroup.c b/kernel/cgroup/cgroup.c
+index 911c9e49b702..27a75e13976a 100644
+--- a/kernel/cgroup/cgroup.c
++++ b/kernel/cgroup/cgroup.c
+@@ -5798,11 +5798,8 @@ void cgroup_post_fork(struct task_struct *child)
+ 		 * the task into the frozen state.
+ 		 */
+ 		if (unlikely(cgroup_task_freeze(child))) {
+-			struct cgroup *cgrp;
+-
+ 			spin_lock(&child->sighand->siglock);
+ 			WARN_ON_ONCE(child->frozen);
+-			cgrp = cset->dfl_cgrp;
+ 			child->jobctl |= JOBCTL_TRAP_FREEZE;
+ 			spin_unlock(&child->sighand->siglock);
+

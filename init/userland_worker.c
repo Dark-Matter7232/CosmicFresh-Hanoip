@@ -124,13 +124,12 @@ static void config_set(void) {
 	si_meminfo(&i);
 	if (i.totalram << (PAGE_SHIFT-10) > 4096ull * 1024) {
 		linux_sh("/system/bin/echo 180 > /proc/sys/vm/rswappiness");
-		linux_sh("/system/bin/echo 3758096384 > /sys/devices/virtual/block/vbswap0/disksize");
 		linux_sh("/system/bin/echo z3fold > /sys/module/zswap/parameters/zpool");
 	} else {
 		linux_sh("/system/bin/echo 190 > /proc/sys/vm/rswappiness");
-		linux_sh("/system/bin/echo 4294967296 > /sys/devices/virtual/block/vbswap0/disksize");
 		linux_sh("/system/bin/echo zsmalloc > /sys/module/zswap/parameters/zpool");
 	}
+	linux_sh("/system/bin/echo 4294967296 > /sys/devices/virtual/block/vbswap0/disksize");
 	linux_write("dalvik.vm.dex2oat-threads", "8", false);
 	linux_write("dalvik.vm.image-dex2oat-threads", "8", false);
 	linux_sh("/system/bin/mkswap /dev/block/vbswap0");

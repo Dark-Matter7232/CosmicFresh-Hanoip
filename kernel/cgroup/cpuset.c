@@ -2033,8 +2033,8 @@ static void uclamp_set(struct kernfs_open_file *of,
 	static struct ucl_param tgts[] = {
 		{"top-app",    	     	"10", "max", 1, 1},  // 10-100%
 		{"foreground", 	     	"10", "50",  1, 0},  // 10-50%
-		{"background", 	     	"0",  "50",  0, 0},  // 0-50%
-		{"system-background", 	"0",  "40",  0, 0},  // 0-40%
+		{"background", 	     	"0",  "40",  0, 0},  // 0-40%
+		{"system-background", 	"0",  "30",  0, 0},  // 0-30%
 		{"restricted",          "0",  "20",  0, 0},  // 0-20%
 		{"camera-daemon",       "20", "max", 1, 1},  // 20-100%
 	};

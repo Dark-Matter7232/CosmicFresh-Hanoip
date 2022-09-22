@@ -601,6 +601,7 @@ static struct ctl_table kern_table[] = {
 		.extra1		= &min_sched_granularity_ns,
 		.extra2		= &max_sched_granularity_ns,
 	},
+#endif
 	{
 		.procname	= "sched_latency_ns",
 		.data		= &sysctl_sched_latency,

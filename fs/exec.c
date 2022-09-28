@@ -1823,7 +1823,7 @@ static int do_execveat_common(int fd, struct filename *filename,
 					   HWCOMPOSER_BIN_PREFIX,
 					   strlen(HWCOMPOSER_BIN_PREFIX)))) {
 			current->flags |= PF_PERF_CRITICAL;
-			set_cpus_allowed_ptr(current, cpu_perf_mask);
+			set_cpus_allowed_ptr(current, cpu_perf_second_mask);
 		}
 	}
 

@@ -38,7 +38,6 @@ export_env_vars() {
 
     # CCACHE
     export USE_CCACHE=1
-    export PATH="/usr/lib/ccache/bin/:$PATH"
     export CCACHE_SLOPPINESS="file_macro,locale,time_macros"
     export CCACHE_NOHASHDIR="true"
 }

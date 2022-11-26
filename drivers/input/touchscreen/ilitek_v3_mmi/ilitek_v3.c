@@ -20,6 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 #include "firmware/ilitek_v3_fw.h"
+#include <linux/moduleparam.h>
 #include "ilitek_v3.h"
 
 /* Debug level */
@@ -374,6 +375,8 @@ static void ilitek_tddi_wq_bat_check(struct work_struct *work)
 	ili_wq_ctrl(WQ_BAT, ENABLE);
 }
 
+static int esd_wq_delay = 4000;
+module_param_named(esd_wq_delay, esd_wq_delay, int, 0664);
 void ili_wq_ctrl(int type, int ctrl)
 {
 	switch (type) {
@@ -386,7 +389,7 @@ void ili_wq_ctrl(int type, int ctrl)
 			ilits->wq_esd_ctrl = ctrl;
 			if (ctrl == ENABLE) {
 				ILI_DBG("execute esd check\n");
-				if (!queue_delayed_work(esd_wq, &esd_work, msecs_to_jiffies(WQ_ESD_DELAY)))
+				if (!queue_delayed_work(esd_wq, &esd_work, msecs_to_jiffies(esd_wq_delay)))
 					ILI_DBG("esd check was already on queue\n");
 			} else {
 				cancel_delayed_work_sync(&esd_work);

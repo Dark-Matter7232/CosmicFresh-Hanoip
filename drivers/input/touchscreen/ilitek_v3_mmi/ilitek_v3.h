@@ -123,7 +123,6 @@
 #define TR_BUF_LIST_SIZE		(1*K) /* Buffer size of touch report for debug data */
 #define SPI_TX_BUF_SIZE  		4096
 #define SPI_RX_BUF_SIZE  		4096
-#define WQ_ESD_DELAY			4000
 #define WQ_BAT_DELAY			2000
 #define AP_INT_TIMEOUT			600 /*600ms*/
 #define MP_INT_TIMEOUT			5000 /*5s*/

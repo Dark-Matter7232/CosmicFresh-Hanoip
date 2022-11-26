@@ -697,6 +697,7 @@ void ilitek_panel_notifier_unregister(void)
 
 static void ilitek_plat_sleep_init(void)
 {
+	int ret;
 #if defined(CONFIG_FB) || defined(CONFIG_DRM_MSM)
 	ILI_INFO("Init notifier_fb struct\n");
 	ilits->notifier_fb.notifier_call = ilitek_plat_notifier_fb;

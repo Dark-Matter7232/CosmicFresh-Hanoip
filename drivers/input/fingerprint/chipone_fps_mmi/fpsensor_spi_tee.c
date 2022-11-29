@@ -283,7 +283,7 @@ static inline long fpsensor_ioctl(struct file *filp, unsigned int cmd, unsigned 
         }
         fpsensor_irq_gpio_cfg(fpsensor_dev);
         //regist irq
-        irqf = IRQF_TRIGGER_RISING | IRQF_ONESHOT;
+        irqf = IRQF_TRIGGER_RISING | IRQF_ONESHOT | IRQF_LITTLE_AFFINE;
         retval = devm_request_threaded_irq(&g_fpsensor->spi->dev, g_fpsensor->irq, fpsensor_irq,
                                            NULL, irqf, dev_name(&g_fpsensor->spi->dev), g_fpsensor);
         if (retval == 0) {

@@ -129,7 +129,7 @@ struct fpc1020_data {
 	int rst_gpio;
 };
 
-static int hw_reset(struct fpc1020_data *fpc1020)
+static inline int hw_reset(struct fpc1020_data *fpc1020)
 {
 	int irq_gpio;
 	struct device *dev = fpc1020->dev;
@@ -162,7 +162,7 @@ exit:
 	return rc;
 }
 
-static ssize_t hw_reset_set(struct device *dev,
+static inline ssize_t hw_reset_set(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
 	int rc;
@@ -174,7 +174,7 @@ static ssize_t hw_reset_set(struct device *dev,
 }
 static DEVICE_ATTR(hw_reset, S_IWUSR, NULL, hw_reset_set);
 
-static ssize_t dev_enable_set(struct device *dev,
+static inline ssize_t dev_enable_set(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct  fpc1020_data *fpc1020 = dev_get_drvdata(dev);
@@ -187,7 +187,7 @@ static ssize_t dev_enable_set(struct device *dev,
 }
 static DEVICE_ATTR(dev_enable, S_IWUSR | S_IWGRP, NULL, dev_enable_set);
 
-static ssize_t irq_get(struct device *device,
+static inline ssize_t irq_get(struct device *device,
 		       struct device_attribute *attribute,
 		       char *buffer)
 {
@@ -198,7 +198,7 @@ static ssize_t irq_get(struct device *device,
 }
 static DEVICE_ATTR(irq, S_IRUSR | S_IRGRP, irq_get, NULL);
 
-static ssize_t irq_cnt_get(struct device *device,
+static inline ssize_t irq_cnt_get(struct device *device,
 		       struct device_attribute *attribute,
 		       char *buffer)
 {
@@ -210,14 +210,14 @@ static DEVICE_ATTR(irq_cnt, S_IRUSR, irq_cnt_get, NULL);
 
 #ifdef CONFIG_INPUT_MISC_FPC1020_SAVE_TO_CLASS_DEVICE
 /* Attribute: vendor (RO) */
-static ssize_t vendor_show(struct device *dev,
+static inline ssize_t vendor_show(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
 	return scnprintf(buf, PAGE_SIZE, "fpc");
 }
 static DEVICE_ATTR_RO(vendor);
 
-static ssize_t modalias_show(struct device *dev, struct device_attribute *a,
+static inline ssize_t modalias_show(struct device *dev, struct device_attribute *a,
 			     char *buf)
 {
 	return scnprintf(buf, PAGE_SIZE, "fpc1020");
@@ -250,7 +250,7 @@ static const struct attribute_group *attribute_groups[] = {
 
 #define MAX_UP_TIME (1 * MSEC_PER_SEC)
 
-static irqreturn_t fpc1020_irq_handler(int irq, void *handle)
+static inline irqreturn_t fpc1020_irq_handler(int irq, void *handle)
 {
 	struct fpc1020_data *fpc1020 = handle;
 
@@ -265,7 +265,7 @@ static irqreturn_t fpc1020_irq_handler(int irq, void *handle)
 	return IRQ_HANDLED;
 }
 
-static int fpc1020_request_named_gpio(struct fpc1020_data *fpc1020,
+static inline int fpc1020_request_named_gpio(struct fpc1020_data *fpc1020,
 		const char *label, int *gpio)
 {
 	struct device *dev = fpc1020->dev;
@@ -289,7 +289,7 @@ static int fpc1020_request_named_gpio(struct fpc1020_data *fpc1020,
 #ifdef CONFIG_INPUT_MISC_FPC1020_SAVE_TO_CLASS_DEVICE
 #define MAX_INSTANCE	5
 #define MAJOR_BASE	32
-static int fpc1020_create_sysfs(struct fpc1020_data *fpc1020, bool create) {
+static inline int fpc1020_create_sysfs(struct fpc1020_data *fpc1020, bool create) {
 	struct device *dev = fpc1020->dev;
 	static struct class *fingerprint_class;
 	static dev_t dev_no;
@@ -333,7 +333,7 @@ ALLOC_REGION:
 }
 #endif
 
-static int fpc1020_probe(struct platform_device *pdev)
+static inline int fpc1020_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
 	int rc = 0;
@@ -422,7 +422,7 @@ exit:
 	return rc;
 }
 
-static int fpc1020_remove(struct platform_device *pdev)
+static inline int fpc1020_remove(struct platform_device *pdev)
 {
 	struct  fpc1020_data *fpc1020 = dev_get_drvdata(&pdev->dev);
 
@@ -441,12 +441,12 @@ static int fpc1020_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static int fpc1020_suspend(struct device *dev)
+static inline int fpc1020_suspend(struct device *dev)
 {
 	return 0;
 }
 
-static int fpc1020_resume(struct device *dev)
+static inline int fpc1020_resume(struct device *dev)
 {
 	return 0;
 }
@@ -475,7 +475,7 @@ static struct platform_driver fpc1020_driver = {
 	.remove		= fpc1020_remove,
 };
 
-static int __init fpc1020_init(void)
+static inline int __init fpc1020_init(void)
 {
 	int rc = platform_driver_register(&fpc1020_driver);
 
@@ -486,7 +486,7 @@ static int __init fpc1020_init(void)
 	return rc;
 }
 
-static void __exit fpc1020_exit(void)
+static inline void __exit fpc1020_exit(void)
 {
 	pr_debug("%s\n", __func__);
 	platform_driver_unregister(&fpc1020_driver);

@@ -353,12 +353,12 @@ static int simple_lmk_init_set(const char *val, const struct kernel_param *kp)
 	si_meminfo(&i);
 	if (i.totalram << (PAGE_SHIFT-10) > 4096ull * 1024) {
 	  // from - phone-xhdpi-6144-dalvik-heap.mk
-	  slmk_minfree = 125;
-	  slmk_timeout = 160;
+	  slmk_minfree = 168;
+	  slmk_timeout = 200;
 	} else {
 	  // from - phone-xhdpi-4096-dalvik-heap.mk
-	  slmk_minfree = 155;
-	  slmk_timeout = 145;
+	  slmk_minfree = 128;
+	  slmk_timeout = 200;
 	}
 
 	return 0;

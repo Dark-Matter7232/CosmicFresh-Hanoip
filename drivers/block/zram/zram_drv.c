@@ -1844,10 +1844,17 @@ static ssize_t disksize_store(struct device *dev,
 	struct zcomp *comp;
 	struct zram *zram = dev_to_zram(dev);
 	int err;
-
-	disksize = memparse(buf, NULL);
-	if (!disksize)
-		return -EINVAL;
+	struct sysinfo i;
+	static unsigned short create_disksize __read_mostly;
+	si_meminfo(&i);
+	if (i.totalram << (PAGE_SHIFT-10) > 4096ull * 1024) {
+	  // from - phone-xhdpi-6144-dalvik-heap.mk
+	  create_disksize = 3;
+	} else {
+	  // from - phone-xhdpi-4096-dalvik-heap.mk
+	  create_disksize = 2;
+	}
+	disksize = (u64)SZ_1G * create_disksize;
 
 	down_write(&zram->init_lock);
 	if (init_done(zram)) {

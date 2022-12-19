@@ -65,7 +65,7 @@ struct wake_lock g_ttw_wl;
 /* -------------------------------------------------------------------- */
 /* fingerprint chip hardware configuration                              */
 /* -------------------------------------------------------------------- */
-static void fpsensor_gpio_free(fpsensor_data_t *fpsensor)
+static inline void fpsensor_gpio_free(fpsensor_data_t *fpsensor)
 {
     struct device *dev = &fpsensor->spi->dev;
 
@@ -85,7 +85,7 @@ static void fpsensor_gpio_free(fpsensor_data_t *fpsensor)
 #endif
 }
 
-static void fpsensor_irq_gpio_cfg(fpsensor_data_t *fpsensor)
+static inline void fpsensor_irq_gpio_cfg(fpsensor_data_t *fpsensor)
 {
     int error = 0;
 
@@ -105,7 +105,7 @@ static void fpsensor_irq_gpio_cfg(fpsensor_data_t *fpsensor)
     return;
 }
 
-static int fpsensor_request_named_gpio(fpsensor_data_t *fpsensor_dev, const char *label, int *gpio)
+static inline int fpsensor_request_named_gpio(fpsensor_data_t *fpsensor_dev, const char *label, int *gpio)
 {
     struct device *dev = &fpsensor_dev->spi->dev;
     struct device_node *np = dev->of_node;
@@ -127,7 +127,7 @@ static int fpsensor_request_named_gpio(fpsensor_data_t *fpsensor_dev, const char
 }
 
 /* delay us after reset */
-static void fpsensor_hw_reset(int delay)
+static inline void fpsensor_hw_reset(int delay)
 {
     FUNC_ENTRY();
     gpio_set_value(g_fpsensor->reset_gpio, 1);
@@ -146,7 +146,7 @@ static void fpsensor_hw_reset(int delay)
     return;
 }
 
-static int fpsensor_get_gpio_dts_info(fpsensor_data_t *fpsensor)
+static inline int fpsensor_get_gpio_dts_info(fpsensor_data_t *fpsensor)
 {
     int ret = 0;
 
@@ -182,13 +182,13 @@ static int fpsensor_get_gpio_dts_info(fpsensor_data_t *fpsensor)
     return ret;
 }
 
-static void setRcvIRQ(int val)
+static inline void setRcvIRQ(int val)
 {
     fpsensor_data_t *fpsensor_dev = g_fpsensor;
     fpsensor_dev->RcvIRQ = val;
 }
 
-static void fpsensor_enable_irq(fpsensor_data_t *fpsensor_dev)
+static inline void fpsensor_enable_irq(fpsensor_data_t *fpsensor_dev)
 {
     FUNC_ENTRY();
     setRcvIRQ(0);
@@ -201,7 +201,7 @@ static void fpsensor_enable_irq(fpsensor_data_t *fpsensor_dev)
     return;
 }
 
-static void fpsensor_disable_irq(fpsensor_data_t *fpsensor_dev)
+static inline void fpsensor_disable_irq(fpsensor_data_t *fpsensor_dev)
 {
     FUNC_ENTRY();
 
@@ -227,7 +227,7 @@ out:
     return;
 }
 
-static irqreturn_t fpsensor_irq(int irq, void *handle)
+static inline irqreturn_t fpsensor_irq(int irq, void *handle)
 {
     fpsensor_data_t *fpsensor_dev = (fpsensor_data_t *)handle;
 
@@ -246,7 +246,7 @@ static irqreturn_t fpsensor_irq(int irq, void *handle)
 }
 
 // release and cleanup fpsensor char device
-static void fpsensor_dev_cleanup(fpsensor_data_t *fpsensor)
+static inline void fpsensor_dev_cleanup(fpsensor_data_t *fpsensor)
 {
     FUNC_ENTRY();
 
@@ -264,7 +264,7 @@ out:
     FUNC_EXIT();
 }
 
-static long fpsensor_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+static inline long fpsensor_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
     fpsensor_data_t *fpsensor_dev = NULL;
     int retval = 0;
@@ -411,12 +411,12 @@ static long fpsensor_ioctl(struct file *filp, unsigned int cmd, unsigned long ar
     return retval;
 }
 
-static long fpsensor_compat_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+static inline long fpsensor_compat_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
     return fpsensor_ioctl(filp, cmd, (unsigned long)(arg));
 }
 
-static unsigned int fpsensor_poll(struct file *filp, struct poll_table_struct *wait)
+static inline unsigned int fpsensor_poll(struct file *filp, struct poll_table_struct *wait)
 {
     unsigned int ret = 0;
 
@@ -443,7 +443,7 @@ static unsigned int fpsensor_poll(struct file *filp, struct poll_table_struct *w
     return ret;
 }
 
-static int fpsensor_open(struct inode *inode, struct file *filp)
+static inline int fpsensor_open(struct inode *inode, struct file *filp)
 {
     fpsensor_data_t *fpsensor_dev;
 
@@ -456,7 +456,7 @@ static int fpsensor_open(struct inode *inode, struct file *filp)
     return 0;
 }
 
-static int fpsensor_release(struct inode *inode, struct file *filp)
+static inline int fpsensor_release(struct inode *inode, struct file *filp)
 {
     fpsensor_data_t *fpsensor_dev;
     int    status = 0;
@@ -502,7 +502,7 @@ static const struct file_operations fpsensor_fops = {
 };
 
 // create and register a char device for fpsensor
-static int fpsensor_dev_setup(fpsensor_data_t *fpsensor)
+static inline int fpsensor_dev_setup(fpsensor_data_t *fpsensor)
 {
     int ret = 0;
     dev_t dev_no = 0;
@@ -567,7 +567,7 @@ out:
 }
 
 #if FP_NOTIFY
-static int fpsensor_fb_notifier_callback(struct notifier_block* self, unsigned long event, void* data)
+static inline int fpsensor_fb_notifier_callback(struct notifier_block* self, unsigned long event, void* data)
 {
     int retval = 0;
     static char screen_status[64] = { '\0' };
@@ -610,7 +610,7 @@ static int fpsensor_fb_notifier_callback(struct notifier_block* self, unsigned l
 }
 #endif
 
-static int fpsensor_probe(struct platform_device *pdev)
+static inline int fpsensor_probe(struct platform_device *pdev)
 {
     int status = 0;
     fpsensor_data_t *fpsensor_dev = NULL;
@@ -666,7 +666,7 @@ out:
     return status;
 }
 
-static int fpsensor_remove(struct platform_device *pdev)
+static inline int fpsensor_remove(struct platform_device *pdev)
 {
     fpsensor_data_t *fpsensor_dev = g_fpsensor;
     int ret = 0;
@@ -708,12 +708,12 @@ out:
     return ret;
 }
 
-static int fpsensor_suspend(struct platform_device *pdev, pm_message_t state)
+static inline int fpsensor_suspend(struct platform_device *pdev, pm_message_t state)
 {
     return 0;
 }
 
-static int fpsensor_resume( struct platform_device *pdev)
+static inline int fpsensor_resume( struct platform_device *pdev)
 {
     return 0;
 }
@@ -740,7 +740,7 @@ static struct platform_driver fpsensor_driver = {
     .resume = fpsensor_resume,
 };
 
-static int __init fpsensor_init(void)
+static inline int __init fpsensor_init(void)
 {
     int status;
 
@@ -753,7 +753,7 @@ static int __init fpsensor_init(void)
 }
 module_init(fpsensor_init);
 
-static void __exit fpsensor_exit(void)
+static inline void __exit fpsensor_exit(void)
 {
     platform_driver_unregister(&fpsensor_driver);
 }

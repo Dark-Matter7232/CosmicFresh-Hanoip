@@ -2850,6 +2850,8 @@
 		qcom,cpulist = <&CPU6 &CPU7>;
 		qcom,target-dev = <&cpu6_cpu_l3_lat>;
 		qcom,cachemiss-ev = <0x17>;
+		qcom,access-ev = <0x2B>;
+		qcom,wb-ev = <0x18>;
 		qcom,core-dev-table =
 			< 1094000  556800000 >,
 			< 1324000  768000000 >,

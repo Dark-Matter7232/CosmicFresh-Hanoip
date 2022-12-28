@@ -10,14 +10,14 @@ RST='\033[0m'
 ORIGIN_DIR=$(pwd)
 TOOLCHAIN=$ORIGIN_DIR/build-shit
 IMAGE=$ORIGIN_DIR/out/arch/arm64/boot/Image.gz
-DEVICE=hanoip
+DEVICE=liber
 CONFIG="${DEVICE}_defconfig"
 FP_MODEL="$*"
-CPO+=(
+GOODIX+=(
     ./scripts/config \
         --file "$ORIGIN_DIR"/out/.config \
         -d FINGERPRINT_FPC_TEE_MMI \
-        -e FINGERPRINT_CHIPONE_FPS_MMI
+        -e FINGERPRINT_GOODIX_FOD_MMI
 )
 MAKE+=(
     -j$(($(nproc)+1)) \
@@ -88,8 +88,8 @@ build_kernel_image() {
     make "${MAKE[@]}" LOCALVERSION="—CosmicFresh-R$KV" $CONFIG 2>&1 | sed 's/^/     /'
 
     echo -e "${GRN}"
-    if [ "$FP_MODEL" = "CPO" ]; then
-        "${CPO[@]}"
+    if [ "$FP_MODEL" = "GOODIX" ]; then
+        "${GOODIX[@]}"
     else
         FP_MODEL="FPC"
     fi
@@ -132,7 +132,7 @@ build_flashable_zip() {
     script_echo "I: Building kernel image..."
     echo -e "${GRN}"
     cp "$ORIGIN_DIR"/out/arch/arm64/boot/{Image.gz,dtbo.img} CosmicFresh/
-    cp "$ORIGIN_DIR"/out/arch/arm64/boot/dts/qcom/sdmmagpie-hanoi-base.dtb CosmicFresh/dtb
+    cp "$ORIGIN_DIR"/out/arch/arm64/boot/dts/qcom/sdmmagpie-liber-base.dtb CosmicFresh/dtb
     cd "$ORIGIN_DIR"/CosmicFresh/ || exit
     zip -r9 "CosmicFresh-R$KV-$FP_MODEL.zip" META-INF version anykernel.sh tools Image.gz dtb dtbo.img
     rm -rf {Image.gz,dtb,dtbo.img}

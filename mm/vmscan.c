@@ -50,7 +50,6 @@
 #include <linux/printk.h>
 #include <linux/dax.h>
 #include <linux/psi.h>
-#include <linux/pagewalk.h>
 #include <linux/memory.h>
 #include <linux/shmem_fs.h>
 #include <linux/ctype.h>

@@ -2885,7 +2885,6 @@ static void reset_mm_stats(struct lru_gen_mm_list *mm_list, bool last,
 static bool should_skip_mm(struct mm_struct *mm, struct mm_walk_args *args)
 {
 	int type;
-	unsigned long pgtables;
 	unsigned long size = 0;
 
 	if (!lru_gen_mm_is_active(mm) && !node_isset(args->node_id, mm->lrugen.nodes))
@@ -2900,11 +2899,8 @@ static bool should_skip_mm(struct mm_struct *mm, struct mm_walk_args *args)
 			       get_mm_counter(mm, MM_SHMEMPAGES);
 	}
 
-	pgtables = PTRS_PER_PTE * sizeof(pte_t) * atomic_long_read(&mm->nr_ptes);
-	pgtables += PTRS_PER_PMD * sizeof(pmd_t) * mm_nr_pmds(mm);
-
 	/* leave the legwork to the rmap if mappings are too sparse */
-	if (size < max(SWAP_CLUSTER_MAX, pgtables / PAGE_SIZE))
+	if (size < max(SWAP_CLUSTER_MAX, mm_pgtables_bytes(mm) / PAGE_SIZE))
 		return true;
 
 	return !mmget_not_zero(mm);
@@ -3411,7 +3407,9 @@ static void walk_mm(struct mm_walk_args *args, struct mm_struct *mm)
 	int err;
 	struct mem_cgroup *memcg = args->memcg;
 	struct lruvec *lruvec = mem_cgroup_lruvec(NODE_DATA(args->node_id), memcg);
-	static const struct mm_walk_ops walk_ops = {
+	struct mm_walk walk = {
+		.mm = mm,
+		.private = args,
 		.test_walk = should_skip_vma,
 		.p4d_entry = walk_pud_range,
 	};
@@ -3436,7 +3434,7 @@ static void walk_mm(struct mm_walk_args *args, struct mm_struct *mm)
 			goto contended;
 		}
 
-		err = walk_page_range(mm, start, end, &walk_ops, args);
+		err = walk_page_range(start, end, &walk);
 
 		up_read(&mm->mmap_sem);
 
